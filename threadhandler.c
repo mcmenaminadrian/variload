@@ -207,7 +207,7 @@ static void XMLCALL
 threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 { 
 	int i, overrun;
-	long address, pageNumber, size;
+	long address, pageNumber, size, resSize;
 	struct ThreadResources *thResources;
 	struct ThreadGlobal *globals;
 	struct ThreadLocal *local;
@@ -240,9 +240,13 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 			}
 			if (strcmp(attr[i], "size") == 0) {
 				size = strtol(attr[i+1], NULL, 16);
+				local->anSize = size;
 				if ((address + size) >> BITSHIFT != pageNumber)
 				{
 					overrun = 1;
+					resSize = (address + size) -
+						((pageNumber + 1) << BITSHIFT);
+					size = size - resSize;
 				}
 			}
 		}
@@ -255,6 +259,9 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 		}
 		if (overrun) {
 			pthread_mutex_lock(&globals->threadGlobalLock);
+			local->anSize = resSize;
+			local->anDesitination = (pageNumber + 1) << BITSHIFT;
+			local->anPage = pageNumber + 1;
 			if (locatePageTreePR(pageNumber + 1,
 				globals->globalTree)) {
 				inGlobalTree(pageNumber + 1, thResources);
@@ -272,6 +279,10 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 				notInGlobalTree(pageNumber, thResources);
 			}
 			if (overrun) {
+				local->anSize = resSize;
+				local->anDestination =
+					(pageNumber + 1) << BITSHIFT;
+				local->anPage = pageNumber + 1;
 				if (locatePageTreePR(pageNumber + 1,
 					globals->globalTree)) {
 					inGlobalTree(pageNumber + 1,
