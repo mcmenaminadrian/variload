@@ -44,6 +44,11 @@ struct ThreadLocal
 	void* optTree;
 	int dead;
 	pthread_mutex_t threadLocalLock;
+	//page analysis data
+	long anPage;
+	long anDestination;
+	long anCount;
+	char anType;
 };
 
 struct ThreadGlobal

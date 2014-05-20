@@ -63,7 +63,7 @@ void* writeDataThread(void* tRes)
 	struct ThreadRecord* records = threadResources->records;
 	initscr();
 	move(0,0);
-	printw("Runtimer Multi-threaded OPT");
+	printw("Pageanalysis OPT");
 	move(1,0);
 	printw("Copyright, (c) Adrian McMenamin, 2014");
 	move(2,0);

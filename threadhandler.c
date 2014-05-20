@@ -156,7 +156,8 @@ static void removePage(long pageNumber, struct ThreadResources *thResources)
 
 	removeFromPageTree(getPageToKill(minTree),
 		thResources->globals->globalTree);
-	killMinTree(minTree);		
+	killMinTree(minTree);
+	//record removal and write out record		
 }
 		
 static int faultPage(long pageNumber, struct ThreadResources *thResources)
@@ -177,6 +178,7 @@ static int faultPage(long pageNumber, struct ThreadResources *thResources)
 static void inGlobalTree(long pageNumber, struct ThreadResources *thResources)
 {
 	struct ThreadGlobal *globals = thResources->globals;
+	//record destination, length and type of access before unlocking
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 	updateTickCount(thResources);
 }
@@ -189,6 +191,8 @@ notInGlobalTree(long pageNumber, struct ThreadResources *thResources)
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 	if (faultPage(pageNumber, thResources) > 0) {
 		pthread_mutex_lock(&globals->threadGlobalLock);
+		//check if record should be created
+		//if so create, then record destination, length and type of access
 		if (countPageTree(globals->globalTree) >
 			CORES * COREMEM / PAGESIZE ) {
 			removePage(pageNumber, thResources);
@@ -212,11 +216,26 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 	local = thResources->local;
 	overrun = 0;
 	if (strcmp(name, "instruction") == 0 || strcmp(name, "load") == 0 ||
-		strcmp(name, "modify") == 0 || strcmp(name, "store") == 0) {
+		strcmp(name, "store") == 0 || strcmp(name, "modify") == 0) {
 		for (i = 0; attr[i]; i += 2) {
+			if (strcmp(name, "instruction")) == 0 {
+				anLocal->anType = 'i';
+			} else {
+				if (strcmp(name, "load") == 0) {
+					anLocal->anType = 'l';
+				} else {
+					if (strcmp(name, "store") == 0) {
+						anLocal->anType = 's';
+					} else {
+						anLocal->anType = 'm';
+					}
+				}
+			}
 			if (strcmp(attr[i], "address") == 0) {
 				address = strtol(attr[i+1], NULL, 16);
 				pageNumber = address >> BITSHIFT;
+				local->anDestination = address;
+				local->anPage = pageNumber;
 				continue;
 			}
 			if (strcmp(attr[i], "size") == 0) {
