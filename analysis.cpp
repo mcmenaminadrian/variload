@@ -16,12 +16,12 @@ struct activePage {
 
 extern "C" {
 
-insertRecord(struct ThreadResources* thResources)
+void insertRecord(struct ThreadResources* thResources)
 {
 	struct ThreadLocal* local = thResources->local;
 	struct ThreadGlobal* globals = thResources->globals;
 	map<unsigned long, struct activePage>* activePages =
-		static_cast<map<long, struct activePage*> >
+		static_cast<map<unsigned long, struct activePage*> >
 		(globals->activePages);
 
 	map<unsigned long, struct activePage*>::iterator it;
@@ -40,6 +40,23 @@ insertRecord(struct ThreadResources* thResources)
 	} else {
 		it->mReferences.insert(pair<unsigned long, unsigned int>
 			(local->anDestination, local->anCount));
+	}
+}
+
+void createRecordsTree(struct ThreadResources* thResources)
+{
+	thResources->globals->activePages = (void*)
+		(new map<unsigned long, struct activePage*>());
+}
+
+void removeRecordsTree(struct ThreadResources* thResources)
+{
+	map<unsigned long, struct activePage*>::iterator it;
+	map<unsigned long, struct activePage*> activePages =
+		static_cast<map<unsigned long, struct activePage*> >
+		(thResources->globals->activePages);
+	for (it = activePages->begin(); it != activePages->end(); it++) {
+		delete it->second;
 	}
 }
 	
