@@ -45,9 +45,9 @@ struct ThreadLocal
 	int dead;
 	pthread_mutex_t threadLocalLock;
 	//page analysis data
-	long anPage;
-	long anDestination;
-	long anCount;
+	unsigned long anPage;
+	unsigned long anDestination;
+	unsigned long anCount;
 	char anType;
 };
 
@@ -66,6 +66,7 @@ struct ThreadResources
 	struct ThreadRecord *records;
 	struct ThreadGlobal* globals;
 	struct ThreadLocal* local;
+	void* activePages;
 };
 
 struct PageChain {
