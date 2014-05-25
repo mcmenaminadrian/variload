@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include <fstream>
+#include <sstream>
 #include "threadhandler.h"
 
 using namespace std;
@@ -15,11 +16,24 @@ struct ActivePage {
 };
 
 
-static ofstream xmlFile;
+static ofstream xmlAnalysisFile;
 
-ofstream openXMLAnalysisFile()
+void writeLongToFile(ofstream& inFile, long& value)
 {
-	ofstream xmlAnalysisFile;
+	stringstream stringy;
+	stringy << value;
+	inFile << stringy.rdbuf();
+}
+
+void writeIntToFile(ofstream& inFile, int& value)
+{
+	stringstream stringy;
+	stringy << value;
+	inFile << stringy.redbuf();
+}
+
+ofstream& openXMLAnalysisFile()
+{
 	xmlAnalysisFile.open("pageanalysis.xml");
 
 	xmlAnalysis << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -89,20 +103,38 @@ void doneWithRecord(long page, struct ThreadResources* thResources)
 		//failed
 	}
 	//write out record
-
+	xmlAnalysisFile << "<page in=\"";
+	writeLongToFile(xmlAnalysisFile, it->tickIn);
+	xmlAnalysisFile << "\" out=\"";
+	writeLongToFile(xmlAnalysisFile, globals->totalTicks);
+	xmlAnalysisFile << "\" >\n";
+	map<unsigned long, unsigned int>::iterator recIT;
+	for (recIT = it->cReferences.begin(); recIt != it->cReferences.end();
+		recIt++) {
+		xmlAnalysisFile << "<code address=\"";
+		writeLongToFile(xmlAnalysisFile, recIt->first);
+		xmlAnalysisFile << "\" size=\"";
+		writeIntToFile(xmlAnalysisFile, recIt->second);
+		xmlAnalysisFile << "\" />\n";
+	}
+	for (recIT = it->mReferences.begin(); recIt != it->mReferences.end();
+		recIt++) {
+		xmlAnalysisFile << "<rw address=\"";
+		writeLongToFile(xmlAnalysisFile, recIt->first);
+		xmlAnalysisFile << "\" size=\"";
+		writeIntToFile(xmlAnalysisFile, recIt->second);
+		xmlAnalysisFile << "\" />\n";
+	}
+	xmlAnalysisFile << "</page>\n";
 	//remove record
+	activePages->erase(it);
 }
-
-	
 
 void createRecordsTree(struct ThreadResources* thResources)
 {
 	thResources->globals->activePages = (void*)
 		(new map<unsigned long, struct ActivePage*>());
-	openXMLAnalysisFile();
-	ofstream xmlOutfile;
-	xmlOutfile.open("paginganalysis.xml");
-	xmlOutfil
+	xmlAnalysisFile = openXMLAnalysisFile();
 }
 
 void removeRecordsTree(struct ThreadResources* thResources)
@@ -114,4 +146,6 @@ void removeRecordsTree(struct ThreadResources* thResources)
 	for (it = activePages->begin(); it != activePages->end(); it++) {
 		delete it->second;
 	}
+	xmlAnalysisFile << "</pageanalysis>\n";
+	xmlAnalysisFile.close();
 }
