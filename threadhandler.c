@@ -153,8 +153,8 @@ static void removePage(long pageNumber, struct ThreadResources *thResources)
 		records = records->next;
 		freeInstTree(instructionTree);
 	}
-
-	removeFromPageTree(getPageToKill(minTree),
+	long maxPage = getPageToKill(minTree);
+	removeFromPageTree(maxPage,
 		thResources->globals->globalTree);
 	killMinTree(minTree);
 	//record removal and write out record		
@@ -178,7 +178,6 @@ static int faultPage(long pageNumber, struct ThreadResources *thResources)
 static void inGlobalTree(long pageNumber, struct ThreadResources *thResources)
 {
 	struct ThreadGlobal *globals = thResources->globals;
-	//record destination, length and type of access before unlocking
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 	updateTickCount(thResources);
 }
@@ -191,8 +190,6 @@ notInGlobalTree(long pageNumber, struct ThreadResources *thResources)
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 	if (faultPage(pageNumber, thResources) > 0) {
 		pthread_mutex_lock(&globals->threadGlobalLock);
-		//check if record should be created
-		//if so create, then record destination, length and type of access
 		if (countPageTree(globals->globalTree) >
 			CORES * COREMEM / PAGESIZE ) {
 			removePage(pageNumber, thResources);
@@ -257,6 +254,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 		} else {
 			notInGlobalTree(pageNumber, thResources);
 		}
+		insertRecord(thResources);
 		if (overrun) {
 			pthread_mutex_lock(&globals->threadGlobalLock);
 			local->anSize = resSize;
@@ -268,6 +266,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 			} else {
 				notInGlobalTree(pageNumber + 1, thResources);
 			}
+			insertRecord(thResources);
 		}
 
 		if (strcmp(name, "modify") == 0) {
@@ -278,6 +277,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 			} else {
 				notInGlobalTree(pageNumber, thResources);
 			}
+			insertRecord(thResources);
 			if (overrun) {
 				local->anSize = resSize;
 				local->anDestination =
@@ -291,6 +291,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 					notInGlobalTree(pageNumber + 1,
 						thResources);
 				}
+				insertRecord(thResources);
 			}
 		}
 		local->instructionCount++;

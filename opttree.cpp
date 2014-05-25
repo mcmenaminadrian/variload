@@ -7,7 +7,6 @@
 
 using namespace std;
 
-
 extern "C" {
 
 void* createOPTTree(void)
@@ -19,8 +18,6 @@ void* createOPTTree(void)
 
 void readOPTTree(void *tree, char *path)
 {
-
-	
 	int longLength = sizeof(unsigned long);
 	unsigned long nextInstructionRead, pageNumberRead;
 	char* buffIn = new char[longLength];
@@ -46,8 +43,6 @@ void readOPTTree(void *tree, char *path)
 	}
 	delete[] buffIn;
 }
-
-
 
 long
 findNextInstruction(unsigned long currentInstruction, long pageNumber,
