@@ -149,3 +149,5 @@ void removeRecordsTree(struct ThreadResources* thResources)
 	xmlAnalysisFile << "</pageanalysis>\n";
 	xmlAnalysisFile.close();
 }
+
+} //end extern "C"

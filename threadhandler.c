@@ -10,6 +10,7 @@
 #include "pages.h"
 #include "insttree.h"
 #include "opttree.h"
+#include "analysis.h"
 
 static int threadline = 10;
 

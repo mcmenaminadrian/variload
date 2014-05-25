@@ -14,13 +14,13 @@ pageanalysis: runtimer.o insttree.o rbpages.o opttree.o threadhandler.o \
 	g++ -O2 -o runtimer -Wall insttree.o rbpages.o opttree.o analysis.o \
 		threadhandler.o runtimer.o -lexpat -lpthread -lncurses
 
-analysis.o: analysis.cpp threadhandler.h
+analysis.o: analysis.cpp threadhandler.h analysis.h
 	g++ -O2 -o analysis.o -c -Wall analysis.cpp
 
 insttree.o: insttree.cpp insttree.h 
 	g++ -O2 -o insttree.o -c -Wall insttree.cpp
 
-threadhandler.o: threadhandler.c threadhandler.h 
+threadhandler.o: threadhandler.c threadhandler.h analysis.h
 	gcc -O2 -o threadhandler.o -c -Wall threadhandler.c
 
 opttree.o: opttree.cpp
@@ -39,13 +39,13 @@ debuganalysis: druntimer.o dinsttree.o drbpages.o dopttree.o dthreadhandler.o \
 		danalysis.o \
 		dthreadhandler.o druntimer.o -lexpat -lpthread -lncurses
 
-danalysis.o: analysis.cpp threadhandler.h
+danalysis.o: analysis.cpp threadhandler.h analysis.h
 	g++ -g -o danalysis.o -c -Wall analysis.cpp
 
 dinsttree.o: insttree.cpp insttree.h 
 	g++ -g -o dinsttree.o -c -Wall insttree.cpp
 
-dthreadhandler.o: threadhandler.c threadhandler.h
+dthreadhandler.o: threadhandler.c threadhandler.h analysis.h
 	gcc -g -o dthreadhandler.o -c -Wall threadhandler.c
 
 dopttree.o: opttree.cpp
