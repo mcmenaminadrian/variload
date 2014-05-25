@@ -157,7 +157,8 @@ static void removePage(long pageNumber, struct ThreadResources *thResources)
 	removeFromPageTree(maxPage,
 		thResources->globals->globalTree);
 	killMinTree(minTree);
-	//record removal and write out record		
+	//record removal and write out record
+	doneWithRecord(maxPage, thResources);
 }
 		
 static int faultPage(long pageNumber, struct ThreadResources *thResources)
