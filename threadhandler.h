@@ -47,7 +47,7 @@ struct ThreadLocal
 	//page analysis data
 	unsigned long anPage;
 	unsigned long anDestination;
-	unsigned long anCount;
+	unsigned long anSize;
 	char anType;
 };
 
@@ -58,6 +58,7 @@ struct ThreadGlobal
 	void* globalTree;
 	struct ThreadArray *threads;
 	char* outputPrefix;
+	void* activePages;
 	pthread_mutex_t threadGlobalLock;
 };
 

@@ -217,16 +217,16 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 	if (strcmp(name, "instruction") == 0 || strcmp(name, "load") == 0 ||
 		strcmp(name, "store") == 0 || strcmp(name, "modify") == 0) {
 		for (i = 0; attr[i]; i += 2) {
-			if (strcmp(name, "instruction")) == 0 {
-				anLocal->anType = 'i';
+			if (strcmp(name, "instruction") == 0) {
+				local->anType = 'i';
 			} else {
 				if (strcmp(name, "load") == 0) {
-					anLocal->anType = 'l';
+					local->anType = 'l';
 				} else {
 					if (strcmp(name, "store") == 0) {
-						anLocal->anType = 's';
+						local->anType = 's';
 					} else {
-						anLocal->anType = 'm';
+						local->anType = 'm';
 					}
 				}
 			}
@@ -260,7 +260,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 		if (overrun) {
 			pthread_mutex_lock(&globals->threadGlobalLock);
 			local->anSize = resSize;
-			local->anDesitination = (pageNumber + 1) << BITSHIFT;
+			local->anDestination = (pageNumber + 1) << BITSHIFT;
 			local->anPage = pageNumber + 1;
 			if (locatePageTreePR(pageNumber + 1,
 				globals->globalTree)) {
