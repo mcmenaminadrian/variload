@@ -1,6 +1,6 @@
 default: all
 
-all: runtimer 
+all: pageanalysis 
 
 debug: debugtimer
 
@@ -9,9 +9,13 @@ clean:
 	rm -f *.o
 
 # normal build
-runtimer: runtimer.o insttree.o rbpages.o opttree.o threadhandler.o
-	g++ -O2 -o runtimer -Wall insttree.o rbpages.o opttree.o \
+pageanalysis: runtimer.o insttree.o rbpages.o opttree.o threadhandler.o \
+	analysis.o
+	g++ -O2 -o runtimer -Wall insttree.o rbpages.o opttree.o analysis.o \
 		threadhandler.o runtimer.o -lexpat -lpthread -lncurses
+
+analysis.o: analysis.cpp threadhandler.h
+	g++ -O2 -o analysis.o -c -Wall analysis.cpp
 
 insttree.o: insttree.cpp insttree.h 
 	g++ -O2 -o insttree.o -c -Wall insttree.cpp
@@ -29,9 +33,14 @@ runtimer.o: runtimer.c threadhandler.h
 	gcc -O2 -o runtimer.o -c -Wall runtimer.c
 
 # debug build
-debugtimer: druntimer.o dinsttree.o drbpages.o dopttree.o dthreadhandler.o
+debuganalysis: druntimer.o dinsttree.o drbpages.o dopttree.o dthreadhandler.o \
+	danalysis.o
 	g++ -g -o runtimer -Wall dinsttree.o drbpages.o dopttree.o \
+		danalysis.o \
 		dthreadhandler.o druntimer.o -lexpat -lpthread -lncurses
+
+danalysis.o: analysis.cpp threadhandler.h
+	g++ -g -o danalysis.o -c -Wall analysis.cpp
 
 dinsttree.o: insttree.cpp insttree.h 
 	g++ -g -o dinsttree.o -c -Wall insttree.cpp

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <map>
+#include <fstream>
 #include "threadhandler.h"
 
 using namespace std;
@@ -13,6 +14,36 @@ struct ActivePage {
 	map<unsigned long, unsigned int> cReferences;
 };
 
+
+static ofstream xmlFile;
+
+ofstream openXMLAnalysisFile()
+{
+	ofstream xmlAnalysisFile;
+	xmlAnalysisFile.open("pageanalysis.xml");
+
+	xmlAnalysis << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+	xmlAnalysis << "<!DOCTYPE pageanalysis [\n";
+	xmlAnalysis << "<!ELEMENT pageanalysis (page*)>\n";
+	xmlAnalysis <<
+		"<!ATTLIST pageanalysis version CDATA #FIXED \"0.1\">\n";
+	xmlAnalysis << "<!ATTLIST pageanalysis xmlns CDATA #FIXED";
+	xmlAnalysis << " \"http://cartesianproduct.wordpress.com\">\n";
+	xmlAnalysis << "<!ELEMENT page (code*, rw*)>\n";
+	xmlAnalysis << "<!ATTLIST page in CDATA #REQUIRED>\n";
+	xmlAnalysis << "<!ATTLIST page out CDATA #REQUIRED>\n";
+	xmlAnalysis << "<!ELEMENT code EMPTY>\n";
+	xmlAnalysis << "<!ATTLIST code address CDATA #REQUIRED>\n";
+	xmlAnalysis << "<!ATTLIST code size CDATA #REQUIRED>\n";
+	xmlAnalysis << "<!ELEMENT rw EMPTY>\n";
+	xmlAnalysis << "<!ATTLIST rw address CDATA #REQUIRED>\n";
+	xmlAnalysis << "<!ATTLIST rw size CDATA #REQUIRED>\n";
+	xmlAnalysis << "]>\n";
+	xmlAnalysis << "<pageanalysis ";
+	xmlAnalysis << "xmlns=\"http://cartesianproduct.wordpress.com\">\n";
+
+	return xmlAnalysis;
+}
 
 extern "C" {
 
@@ -68,6 +99,10 @@ void createRecordsTree(struct ThreadResources* thResources)
 {
 	thResources->globals->activePages = (void*)
 		(new map<unsigned long, struct ActivePage*>());
+	openXMLAnalysisFile();
+	ofstream xmlOutfile;
+	xmlOutfile.open("paginganalysis.xml");
+	xmlOutfil
 }
 
 void removeRecordsTree(struct ThreadResources* thResources)
