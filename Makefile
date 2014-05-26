@@ -1,17 +1,17 @@
 default: all
 
-all: pageanalysis 
+all: analysis 
 
-debug: debugtimer
+debug: debuganalysis
 
 #get rid of junk
 clean:
 	rm -f *.o
 
 # normal build
-pageanalysis: runtimer.o insttree.o rbpages.o opttree.o threadhandler.o \
+analysis: runtimer.o insttree.o rbpages.o opttree.o threadhandler.o \
 	analysis.o
-	g++ -O2 -o runtimer -Wall insttree.o rbpages.o opttree.o analysis.o \
+	g++ -O2 -o analysis -Wall insttree.o rbpages.o opttree.o analysis.o \
 		threadhandler.o runtimer.o -lexpat -lpthread -lncurses
 
 analysis.o: analysis.cpp threadhandler.h analysis.h
@@ -35,7 +35,7 @@ runtimer.o: runtimer.c threadhandler.h
 # debug build
 debuganalysis: druntimer.o dinsttree.o drbpages.o dopttree.o dthreadhandler.o \
 	danalysis.o
-	g++ -g -o runtimer -Wall dinsttree.o drbpages.o dopttree.o \
+	g++ -g -o analysis -Wall dinsttree.o drbpages.o dopttree.o \
 		danalysis.o \
 		dthreadhandler.o druntimer.o -lexpat -lpthread -lncurses
 
