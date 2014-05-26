@@ -11,6 +11,7 @@ using namespace std;
 struct ActivePage {
 	unsigned long tickIn;
 	unsigned long tickOut;
+	unsigned long frameNumber;
 	map<unsigned long, unsigned int> mReferences;
 	map<unsigned long, unsigned int> cReferences;
 };
@@ -48,10 +49,11 @@ ofstream& openXMLAnalysisFile()
 	xmlAnalysisFile << "<!DOCTYPE pageanalysis [\n";
 	xmlAnalysisFile << "<!ELEMENT pageanalysis (page*)>\n";
 	xmlAnalysisFile <<
-		"<!ATTLIST pageanalysis version CDATA #FIXED \"0.1\">\n";
+		"<!ATTLIST pageanalysis version CDATA #FIXED \"0.2\">\n";
 	xmlAnalysisFile << "<!ATTLIST pageanalysis xmlns CDATA #FIXED";
 	xmlAnalysisFile << " \"http://cartesianproduct.wordpress.com\">\n";
 	xmlAnalysisFile << "<!ELEMENT page (code*, rw*)>\n";
+	xmlAnalysisFile << "<!ATTLIST page frame CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ATTLIST page in CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ATTLIST page out CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ELEMENT code EMPTY>\n";
@@ -82,6 +84,7 @@ void insertRecord(struct ThreadResources* thResources)
 	it = activePages->find(local->anPage);
 	if (it == activePages->end()) {
 		struct ActivePage* nextPage = new ActivePage();
+		nextPage->frameNumber = local->anPage;
 		nextPage->tickIn = globals->totalTicks;
 		nextPage->tickOut = 0;
 		activePages->insert(pair<unsigned long, struct ActivePage*>
@@ -113,7 +116,9 @@ void doneWithRecord(long page, struct ThreadResources* thResources)
 		//failed
 	}
 	//write out record
-	xmlAnalysisFile << "<page in=\"";
+	xmlAnalysisFile << "<page frame=\"";
+	writeLongToFile(xmlAnalysisFile, it->second->frameNumber);
+ 	xmlAnalysisFile << "\" in=\"";
 	writeLongToFile(xmlAnalysisFile, it->second->tickIn);
 	xmlAnalysisFile << "\" out=\"";
 	writeLongToFile(xmlAnalysisFile, globals->totalTicks);
