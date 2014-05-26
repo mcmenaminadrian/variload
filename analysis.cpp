@@ -12,8 +12,8 @@ struct ActivePage {
 	unsigned long tickIn;
 	unsigned long tickOut;
 	unsigned long frameNumber;
-	map<unsigned long, unsigned int> mReferences;
-	map<unsigned long, unsigned int> cReferences;
+	map<unsigned long, pair<unsigned long, unsigned int> > mReferences;
+	map<unsigned long, pair<unsigned long, unsigned int> > cReferences;
 };
 
 
@@ -56,10 +56,10 @@ ofstream& openXMLAnalysisFile()
 	xmlAnalysisFile << "<!ATTLIST page frame CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ATTLIST page in CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ATTLIST page out CDATA #REQUIRED>\n";
-	xmlAnalysisFile << "<!ELEMENT code EMPTY>\n";
+	xmlAnalysisFile << "<!ELEMENT code CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ATTLIST code address CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ATTLIST code size CDATA #REQUIRED>\n";
-	xmlAnalysisFile << "<!ELEMENT rw EMPTY>\n";
+	xmlAnalysisFile << "<!ELEMENT rw CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ATTLIST rw address CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ATTLIST rw size CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "]>\n";
@@ -93,12 +93,16 @@ void insertRecord(struct ThreadResources* thResources)
 	}
 	if (local->anType == 'c') {
 		it->second->cReferences.
-			insert(pair<unsigned long, unsigned int>
-			(local->anDestination, local->anSize));
+			insert(pair<unsigned long,
+			pair<unsigned long, unsigned int> >
+			(globals->totalTicks,
+			pair(local->anDestination, local->anSize)));
 	} else {
 		it->second->mReferences.
-			insert(pair<unsigned long, unsigned int>
-			(local->anDestination, local->anSize));
+			insert(pair<unsigned long,
+			pair<unsigned long, unsigned int> >
+			(globals->totalTicks,
+			pair(local->anDestination, local->anSize)));
 	}
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 }
@@ -127,18 +131,22 @@ void doneWithRecord(long page, struct ThreadResources* thResources)
 	for (recIt = it->second->cReferences.begin();
 		recIt != it->second->cReferences.end(); recIt++) {
 		xmlAnalysisFile << "<code address=\"";
-		writeLongToFile(xmlAnalysisFile, recIt->first);
+		writeLongToFile(xmlAnalysisFile, recIt->second.first);
 		xmlAnalysisFile << "\" size=\"";
-		writeIntToFile(xmlAnalysisFile, recIt->second);
-		xmlAnalysisFile << "\" />\n";
+		writeIntToFile(xmlAnalysisFile, recIt->second.second);
+		xmlAnalysisFile << "\">";
+		writeLongToFile(xmlAnalysisFile, recIt->first);
+		xmlAnalysisFile << "</code>\n";
 	}
 	for (recIt = it->second->mReferences.begin();
 		recIt != it->second->mReferences.end(); recIt++) {
 		xmlAnalysisFile << "<rw address=\"";
-		writeLongToFile(xmlAnalysisFile, recIt->first);
+		writeLongToFile(xmlAnalysisFile, recIt->second.first);
 		xmlAnalysisFile << "\" size=\"";
-		writeIntToFile(xmlAnalysisFile, recIt->second);
-		xmlAnalysisFile << "\" />\n";
+		writeIntToFile(xmlAnalysisFile, recIt->second.second);
+		xmlAnalysisFile << "\">";
+		writeLongToFile(xmlAnalysisFile, recIt->first);
+		xmlAnlaysisFile << "</rw>\n";
 	}
 	xmlAnalysisFile << "</page>\n";
 	//remove record
