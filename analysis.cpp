@@ -96,13 +96,15 @@ void insertRecord(struct ThreadResources* thResources)
 			insert(pair<unsigned long,
 			pair<unsigned long, unsigned int> >
 			(globals->totalTicks,
-			pair(local->anDestination, local->anSize)));
+			pair<unsigned long, unsigned int>
+			(local->anDestination, local->anSize)));
 	} else {
 		it->second->mReferences.
 			insert(pair<unsigned long,
 			pair<unsigned long, unsigned int> >
 			(globals->totalTicks,
-			pair(local->anDestination, local->anSize)));
+			pair<unsigned long, unsigned int>
+			(local->anDestination, local->anSize)));
 	}
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 }
@@ -127,7 +129,7 @@ void doneWithRecord(long page, struct ThreadResources* thResources)
 	xmlAnalysisFile << "\" out=\"";
 	writeLongToFile(xmlAnalysisFile, globals->totalTicks);
 	xmlAnalysisFile << "\" >\n";
-	map<unsigned long, unsigned int>::iterator recIt;
+	map<unsigned long, pair<unsigned long, unsigned int> >::iterator recIt;
 	for (recIt = it->second->cReferences.begin();
 		recIt != it->second->cReferences.end(); recIt++) {
 		xmlAnalysisFile << "<code address=\"";
@@ -146,7 +148,7 @@ void doneWithRecord(long page, struct ThreadResources* thResources)
 		writeIntToFile(xmlAnalysisFile, recIt->second.second);
 		xmlAnalysisFile << "\">";
 		writeLongToFile(xmlAnalysisFile, recIt->first);
-		xmlAnlaysisFile << "</rw>\n";
+		xmlAnalysisFile << "</rw>\n";
 	}
 	xmlAnalysisFile << "</page>\n";
 	//remove record
