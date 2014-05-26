@@ -18,14 +18,14 @@ struct ActivePage {
 
 static ofstream xmlAnalysisFile;
 
-void writeLongToFile(ofstream& inFile, unsigned long& value)
+void writeLongToFile(ofstream& inFile, unsigned long value)
 {
 	stringstream stringy;
 	stringy << value;
 	inFile << stringy.rdbuf();
 }
 
-void writeLongToFile(ofstream& inFile, long& value)
+void writeLongToFile(ofstream& inFile, long value)
 {
 	stringstream stringy;
 	stringy << value;
@@ -33,7 +33,7 @@ void writeLongToFile(ofstream& inFile, long& value)
 }
 
 
-void writeIntToFile(ofstream& inFile, unsigned int& value)
+void writeIntToFile(ofstream& inFile, unsigned int value)
 {
 	stringstream stringy;
 	stringy << value;
@@ -144,14 +144,14 @@ void createRecordsTree(struct ThreadResources* thResources)
 {
 	thResources->globals->activePages = 
 		(new map<unsigned long, struct ActivePage*>());
-	xmlAnalysisFile = openXMLAnalysisFile();
+	openXMLAnalysisFile();
 }
 
 void removeRecordsTree(struct ThreadResources* thResources)
 {
 	map<unsigned long, struct ActivePage*>::iterator it;
-	map<unsigned long, struct ActivePage*> activePages =
-		static_cast<map<unsigned long, struct ActivePage*> >
+	map<unsigned long, struct ActivePage*>* activePages =
+		static_cast<map<unsigned long, struct ActivePage*>*>
 		(thResources->globals->activePages);
 	for (it = activePages->begin(); it != activePages->end(); it++) {
 		delete it->second;
