@@ -218,7 +218,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 		strcmp(name, "store") == 0 || strcmp(name, "modify") == 0) {
 		for (i = 0; attr[i]; i += 2) {
 			if (strcmp(name, "instruction") == 0) {
-				local->anType = 'i';
+				local->anType = 'c';
 			} else {
 				if (strcmp(name, "load") == 0) {
 					local->anType = 'l';

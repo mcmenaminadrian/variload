@@ -137,6 +137,7 @@ void doneWithRecord(long page, struct ThreadResources* thResources)
 	}
 	xmlAnalysisFile << "</page>\n";
 	//remove record
+	delete it->second;
 	activePages->erase(it);
 }
 
@@ -149,6 +150,8 @@ void createRecordsTree(struct ThreadResources* thResources)
 
 void removeRecordsTree(struct ThreadResources* thResources)
 {
+	xmlAnalysisFile << "</pageanalysis>\n";
+	xmlAnalysisFile.close();
 	map<unsigned long, struct ActivePage*>::iterator it;
 	map<unsigned long, struct ActivePage*>* activePages =
 		static_cast<map<unsigned long, struct ActivePage*>*>
@@ -156,8 +159,6 @@ void removeRecordsTree(struct ThreadResources* thResources)
 	for (it = activePages->begin(); it != activePages->end(); it++) {
 		delete it->second;
 	}
-	xmlAnalysisFile << "</pageanalysis>\n";
-	xmlAnalysisFile.close();
 }
 
 } //end extern "C"
