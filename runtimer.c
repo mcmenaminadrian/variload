@@ -12,6 +12,7 @@
 #include "pages.h"
 #include "threadhandler.h"
 #include "opttree.h"
+#include "analysis.h"
 
 #define BARRIER 10
 #define SUPER 100000
@@ -350,10 +351,12 @@ int startFirstThread(char* outputprefix)
 	threads->threadNumber = 0;
 	threads->nextThread = NULL;
 	globalThreadList->threads = threads;
+	createRecordsTree(firstThreadResources);
 	pthread_create(&dataThread, NULL, writeDataThread, (void*)firstThreadResources);
 	pthread_create(&threads->aPThread, NULL, startThreadHandler,
 		(void *)firstThreadResources);
 	pthread_join(threads->aPThread, NULL);
+	removeRecordsTree(firstThreadResources);
 	return 0;
 
 failThreads:
