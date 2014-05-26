@@ -380,6 +380,7 @@ cleanup:
 		getch();
 		removePageTree(thResources->globals->globalTree);
 		free(thResources->globals);
+		removeRecordsTree(thResources);
 	}
 	free(thResources);
 	

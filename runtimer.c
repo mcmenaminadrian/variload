@@ -356,7 +356,6 @@ int startFirstThread(char* outputprefix)
 	pthread_create(&threads->aPThread, NULL, startThreadHandler,
 		(void *)firstThreadResources);
 	pthread_join(threads->aPThread, NULL);
-	removeRecordsTree(firstThreadResources);
 	return 0;
 
 failThreads:
