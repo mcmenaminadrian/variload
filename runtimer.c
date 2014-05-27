@@ -14,7 +14,7 @@
 #include "opttree.h"
 #include "analysis.h"
 
-#define BARRIER 10
+#define BARRIER 1
 #define SUPER 100000
 #define THREADLINE 5
 
