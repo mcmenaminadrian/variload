@@ -56,10 +56,10 @@ ofstream& openXMLAnalysisFile()
 	xmlAnalysisFile << "<!ATTLIST page frame CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ATTLIST page in CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ATTLIST page out CDATA #REQUIRED>\n";
-	xmlAnalysisFile << "<!ELEMENT code CDATA #REQUIRED>\n";
+	xmlAnalysisFile << "<!ELEMENT code (#PCDATA)>\n";
 	xmlAnalysisFile << "<!ATTLIST code address CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ATTLIST code size CDATA #REQUIRED>\n";
-	xmlAnalysisFile << "<!ELEMENT rw CDATA #REQUIRED>\n";
+	xmlAnalysisFile << "<!ELEMENT rw (#PCDATA)>\n";
 	xmlAnalysisFile << "<!ATTLIST rw address CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "<!ATTLIST rw size CDATA #REQUIRED>\n";
 	xmlAnalysisFile << "]>\n";
