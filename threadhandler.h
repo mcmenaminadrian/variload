@@ -5,11 +5,13 @@
 #define BITSHIFT 12
 #define CORES 16
 #define COREMEM 32768
+#define HIGH 0.95
 #define MEMWIDTH 16
 #define PAGESIZE (1 << BITSHIFT) 
 #define MAXTHREADS 18
 
 struct ThreadLocal;
+
 
 struct PageToKill
 {
@@ -41,7 +43,6 @@ struct ThreadLocal
 	long prevFaultCount;
 	long tickCount;
 	long prevTickCount;
-	void* optTree;
 	int dead;
 	pthread_mutex_t threadLocalLock;
 	//page analysis data
@@ -55,7 +56,10 @@ struct ThreadGlobal
 {
 	long totalTicks;
 	struct ThreadRecord* head;
-	void* globalTree;
+	void* highTree;
+	void* lowTree;
+	int maxHighSize;
+	int maxLowSize;
 	struct ThreadArray *threads;
 	char* outputPrefix;
 	void* activePages;
