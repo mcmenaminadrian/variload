@@ -1,17 +1,17 @@
 default: all
 
-all: analysis 
+all: lru2analysis 
 
-debug: debuganalysis
+debug: debuglru2analysis
 
 #get rid of junk
 clean:
 	rm -f *.o
 
 # normal build
-analysis: runtimer.o insttree.o rbpages.o opttree.o threadhandler.o \
+lru2analysis: runtimer.o insttree.o rbpages.o opttree.o threadhandler.o \
 	analysis.o
-	g++ -O2 -o analysis -Wall insttree.o rbpages.o opttree.o analysis.o \
+	g++ -O2 -o lru2aysis -Wall insttree.o rbpages.o opttree.o analysis.o \
 		threadhandler.o runtimer.o -lexpat -lpthread -lncurses
 
 analysis.o: analysis.cpp threadhandler.h analysis.h
@@ -33,9 +33,9 @@ runtimer.o: runtimer.c threadhandler.h
 	gcc -O2 -o runtimer.o -c -Wall runtimer.c
 
 # debug build
-debuganalysis: druntimer.o dinsttree.o drbpages.o dopttree.o dthreadhandler.o \
+debuglru2analysis: druntimer.o dinsttree.o drbpages.o dopttree.o dthreadhandler.o \
 	danalysis.o
-	g++ -g -o analysis -Wall dinsttree.o drbpages.o dopttree.o \
+	g++ -g -o lru2aysis -Wall dinsttree.o drbpages.o dopttree.o \
 		danalysis.o \
 		dthreadhandler.o druntimer.o -lexpat -lpthread -lncurses
 
