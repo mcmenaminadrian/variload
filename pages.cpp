@@ -95,7 +95,7 @@ void* createPageTree(void)
 
 void removePageTree(void* tree)
 {
-	map<chrono::milliseconds, long>* prTree;
+	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
 	delete prTree;
 }
@@ -104,20 +104,15 @@ void insertIntoPageTree(long pageNumber, void* tree)
 {
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
-	long insert
-	prTree->insert(pair<long, long>(
-		pageNumber,
-		getUnixTimeChrono());
+	prTree->insertPage(pageNumber);
 }
 
 long locatePageTreePR(long pageNumber, void* tree)
 {
-	set<long>* prTree;
-	prTree = static_cast<map<long, long> *>(tree);
-	set<long>::iterator it;
-	it = prTree->find(pageNumber);
-	if (it != prTree->end()) {
-		return *it;
+	DoubleTree *prTree;
+	prTree = static_cast<DoubleTree *>(tree);
+	if (prTree->locatePage(pageNumber) {
+		return 1;
 	} else {
 		return 0;
 	}
@@ -131,23 +126,10 @@ void removeFromPageTree(long pageNumber, void* tree)
 
 int countPageTree(void* tree)
 {
-	set<long> *prTree;
-	prTree = static_cast<set<long> *>(tree);
-	return prTree->size();
+	DoubleTree *prTree;
+	prTree = static_cast<DoubleTree *>(tree);
+	return prTree->treeSize();
 }
 
-void
-fillInstructionTree(void* global, void* iTree, void* oTree, long instruction)
-{
-	set<long>* prTree;
-	prTree = static_cast<set<long> *>(global);
-	set<long>::iterator it;
-	for (it = prTree->begin(); it != prTree->end(); it++) {
-		long pageNumber = *it;
-		long nextInstruction = findNextInstruction(instruction,
-			pageNumber, oTree);
-		insertIntoTree(pageNumber, nextInstruction, iTree);
-	}
-}
 
 }// end extern "C"		
