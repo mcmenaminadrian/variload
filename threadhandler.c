@@ -22,18 +22,10 @@ spawnThread(int parentThread, int threadNo, struct ThreadGlobal* globals)
 	printw("Spawning thread %i. at tick %li\n", threadNo,
 		globals->totalTicks);
 	refresh();
-	char* threadOPT = (char*) malloc(BUFFSZ);
-	if (!threadOPT) {
-		fprintf(stderr,
-			"Could not allocate memory to spawn thread %i.\n",
-			threadNo);
-		goto fail;
-	}
-	sprintf(threadOPT, "%s%i.bin", globals->outputPrefix, threadNo);
 
 	//find the file that matches the thread number
 	struct ThreadRecord* threadRecord = globals->head;
-	
+
 	while (threadRecord) {
 		if (threadRecord->number == threadNo) {
 			break;
@@ -57,13 +49,6 @@ spawnThread(int parentThread, int threadNo, struct ThreadGlobal* globals)
 	localThreadStuff->prevInstructionCount = 0;
 	localThreadStuff->prevFaultCount = 0;
 
-	localThreadStuff->optTree = createOPTTree();
-	if (!localThreadStuff->optTree) {
-		fprintf(stderr, "Could not create OPT tree for thread %i\n",
-			threadNo);
-		goto failOPT;
-	}
-
 	int errL = pthread_mutex_init(&localThreadStuff->threadLocalLock, NULL);
 	if (errL) {
 		fprintf(stderr,
@@ -72,8 +57,6 @@ spawnThread(int parentThread, int threadNo, struct ThreadGlobal* globals)
 		goto failLock;
 	}
 
-	readOPTTree(localThreadStuff->optTree, threadOPT);
-	
 	struct ThreadResources* threadResources = (struct ThreadResources*)
 		malloc(sizeof (struct ThreadResources));
 	if (!threadResources) {
@@ -110,7 +93,6 @@ spawnThread(int parentThread, int threadNo, struct ThreadGlobal* globals)
 	}
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 	
-	free(threadOPT);
 	pthread_create(&anotherThread->aPThread, NULL, startThreadHandler,
 		(void*)threadResources);
 	return;
@@ -119,11 +101,9 @@ failTA:
 	free(threadResources);
 failTR:
 failLock:
-	free(localThreadStuff->optTree);
 failOPT:
 	free(localThreadStuff);
 failTL:
-	free(threadOPT);
 fail:
 	return;
 }
@@ -167,7 +147,8 @@ static int faultPage(long pageNumber, struct ThreadResources *thResources)
 	int countDown = (4096 * 100)/MEMWIDTH ;
 	while (countDown) {
 		if (locatePageTreePR(pageNumber,
-			thResources->globals->globalTree) > 0) {
+			thResources->globals->lowTree) || locatePageTreePR(
+			pageNumber, thResources->globals->highTree)) {
 			return 0;
 		}
 		updateTickCount(thResources);
@@ -251,10 +232,14 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 		}
 		//have address - is it already present?
 		pthread_mutex_lock(&globals->threadGlobalLock);
-		if (locatePageTreePR(pageNumber, globals->globalTree) > 0) {
-			inGlobalTree(pageNumber, thResources);
+		if (locatePageTreePR(pageNumber, globals->lowTree)) {
+			promoteToHighTree(pageNumber, thResources);
 		} else {
-			notInGlobalTree(pageNumber, thResources);
+			if (locatePageTreePR(pageNumber, globals->highTree)) {
+				updateHighTree(pageNumber, thResources)
+			} else {
+					notInGlobalTree(pageNumber, thResources);
+				}
 		}
 		insertRecord(thResources);
 		if (overrun) {

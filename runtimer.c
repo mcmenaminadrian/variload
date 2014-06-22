@@ -280,12 +280,17 @@ int startFirstThread(char* outputprefix)
 		goto failed;
 	}
 	globalThreadList->totalTicks = 0;
-	globalThreadList->globalTree = createPageTree();
-	if (!(globalThreadList->globalTree)) {
+	globalThreadList->highTree = createPageTree();
+	globalThreadList->lowTree = createPageTree();
+	if (!globalThreadList->highTree || !globalThreadList->lowTree) {
 		fprintf(stderr,
-			"Could not create global tree");
+			"Could not create page trees");
 		goto failGlobalTree;
 	}
+
+	globalThreadList->maxHighSize = ((COREMEM * CORES)/(PAGESIZE)) * HIGH;
+	globalThreadList->maxLowSize = (COREMEM * CORES)/(PAGESIZE) - 
+		globalThreadList->maxHighSize;
 
 	firstThreadLocal =
 		(struct ThreadLocal*)malloc(sizeof(struct ThreadLocal));
@@ -302,12 +307,6 @@ int startFirstThread(char* outputprefix)
 	firstThreadLocal->prevInstructionCount = 0;
 	firstThreadLocal->prevFaultCount = 0;
 
-	firstThreadLocal->optTree = createOPTTree();
-	if (!(firstThreadLocal->optTree)) {
-		fprintf(stderr,
-			"Could not initialise OPT tree.\n");
-		goto failOPTTreeCreate;
-	}
 
 	firstThreadLocal->threadNumber = startTR->number;
 	globalThreadList->outputPrefix = (char*) malloc(BUFFSZ);
@@ -364,11 +363,10 @@ failMutex:
 failResources:
 	free(globalThreadList->outputPrefix);
 failOutput:
-	removeOPTTree(firstThreadLocal->optTree);
-failOPTTreeCreate:
 	free(firstThreadLocal);
 failFirstThreadLocal:
-	removePageTree(globalThreadList->globalTree);
+	removePageTree(globalThreadList->highTree);
+	removePageTree(globalThreadList->lowTree);
 failGlobalTree:
 	free(globalThreadList);	
 failed:

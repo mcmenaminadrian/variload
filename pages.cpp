@@ -87,7 +87,6 @@ extern "C" {
 long findNextInstruction(unsigned long cI, long pN, void* tree);
 void insertIntoTree(long, long, void*);
 
-
 void* createPageTree(void)
 {
 	return static_cast<void*>(new DoubleTree());
@@ -121,7 +120,7 @@ long locatePageTreePR(long pageNumber, void* tree)
 void removeFromPageTree(long pageNumber, void* tree)
 {
 	set<long>* prTree = static_cast<set<long> *>(tree);
-	prTree->erase(pageNumber);
+	prTree->removePage(pageNumber);
 }
 
 int countPageTree(void* tree)
@@ -131,5 +130,11 @@ int countPageTree(void* tree)
 	return prTree->treeSize();
 }
 
+void removeOldestPage(void *tree)
+{
+	DoubleTree *prTree;
+	prTree = static_cast<DoubleTree *>(tree);
+	prTree->removePage(prTree->oldestPage());
+}
 
 }// end extern "C"		
