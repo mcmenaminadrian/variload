@@ -373,8 +373,6 @@ int main(int argc, char* argv[])
 		exit(-1);
 	}
 
-	strcpy(outputprefix, argv[2]);
-
 	XML_Parser p_ctrl = XML_ParserCreate("UTF-8");
 	if (!p_ctrl) {
 		fprintf(stderr, "Could not create parser\n");
