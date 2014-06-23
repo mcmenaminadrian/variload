@@ -11,5 +11,5 @@ void insertIntoPageTree(long pageNumber, void* tree);
 void* locatePageTreePR(long pageNumber, void* tree);
 void removeFromPageTree(long pageNumber, void* tree);
 int countPageTree(void* tree);
-void fillInstructionTree(void* gTree, void* iTree, void* oTree, long inst);
+long removeOldestPage(void* tree);
 #endif

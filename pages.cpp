@@ -61,7 +61,7 @@ long DoubleTree::removePage(const long pageNumber)
 	{
 		cout << "ERROR: page does not exist in tree: " << pageNumber;
 		cout << "\n";
-		return;
+		return -1;
 	}
 	long timeToGo = itPage->second;
 	itTick = tickTree.equal_range(timeToGo);
