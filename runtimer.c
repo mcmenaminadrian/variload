@@ -368,7 +368,7 @@ int main(int argc, char* argv[])
 	size_t len = 0;
 	int done;	
 
-	if (argc < 3) {
+	if (argc < 2) {
 		usage();
 		exit(-1);
 	}
