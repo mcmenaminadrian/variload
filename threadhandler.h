@@ -61,7 +61,6 @@ struct ThreadGlobal
 	int maxHighSize;
 	int maxLowSize;
 	struct ThreadArray *threads;
-	char* outputPrefix;
 	void* activePages;
 	pthread_mutex_t threadGlobalLock;
 };

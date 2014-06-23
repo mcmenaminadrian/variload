@@ -9,7 +9,6 @@
 #include "threadhandler.h"
 #include "pages.h"
 #include "insttree.h"
-#include "opttree.h"
 #include "analysis.h"
 
 static int threadline = 10;
@@ -116,30 +115,12 @@ static void removePage(long pageNumber, struct ThreadResources *thResources)
 		thResources->local->tickCount,
 		thResources->local->faultCount); */
 
-	struct ThreadRecord* records = thResources->globals->head;
-	void* minTree = createMinTree();
-	while (records) {
-		struct ThreadLocal* locals = records->local;
-		if (!locals || locals->dead == 1) {
-			records = records->next;
-			continue;
-		}
-		
-		void* instructionTree = createInstructionTree();
-		fillInstructionTree(thResources->globals->globalTree,
-			instructionTree,
-			locals->optTree,
-			locals->instructionCount);
-		pushToMinTree(minTree, instructionTree);
-		records = records->next;
-		freeInstTree(instructionTree);
+	struct ThreadGlobal *globals = thResources->globals;
+	insertIntoPageTree(pageNumber, globals->lowTree);
+	if (countPageTree(globals->lowTree) > maxLowSize) {
+		long killPage = removeOldestPage(globals->lowTree);
+		doneWithRecord(killPage, thResources);
 	}
-	long maxPage = getPageToKill(minTree);
-	removeFromPageTree(maxPage,
-		thResources->globals->globalTree);
-	killMinTree(minTree);
-	//record removal and write out record
-	doneWithRecord(maxPage, thResources);
 }
 		
 static int faultPage(long pageNumber, struct ThreadResources *thResources)

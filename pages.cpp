@@ -22,7 +22,7 @@ class DoubleTree
 	public:
 	void insertPage(const long pageNumber);
 	bool locatePage(const long pageNumber) const;
-	void removePage(const long pageNumber);
+	long removePage(const long pageNumber);
 	long oldestPage() const;
 	long treeSize() const { return pageTree.size();}
 };
@@ -40,7 +40,7 @@ void DoubleTree::insertPage(const long pageNumber)
 	tickTree.insert(pair<long, long>(insertTime, pageNumber));
 }
 
-bool DoubleTree::locatePage(const long PageNumber) const
+bool DoubleTree::locatePage(const long pageNumber) const
 {
 	if (pageTree.find(pageNumber) == pageTree.end())
 	{
@@ -50,14 +50,14 @@ bool DoubleTree::locatePage(const long PageNumber) const
 	}
 }
 
-void DoubleTree::removePage(const long pageNumber)
+long DoubleTree::removePage(const long pageNumber)
 {
 	map<long, long>::iterator itPage;
 	pair<multimap<long, long>::iterator,
 		multimap<long, long>::iterator> itTick;
 
 	itPage = pageTree.find(pageNumber);
-	if (itPage = pageTree.end() )
+	if (itPage == pageTree.end() )
 	{
 		cout << "ERROR: page does not exist in tree: " << pageNumber;
 		cout << "\n";
@@ -70,10 +70,12 @@ void DoubleTree::removePage(const long pageNumber)
 		it != itTick.second; it++)
 	{
 		if (it->second == pageNumber) {
-			itTick.erase(it);
+			tickTree.erase(it);
 			break;
 		}
 	}
+	pageTree.erase(pageNumber);
+	return pageNumber;
 }
 
 long DoubleTree::oldestPage() const
@@ -110,7 +112,7 @@ long locatePageTreePR(long pageNumber, void* tree)
 {
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
-	if (prTree->locatePage(pageNumber) {
+	if (prTree->locatePage(pageNumber)) {
 		return 1;
 	} else {
 		return 0;
@@ -119,7 +121,7 @@ long locatePageTreePR(long pageNumber, void* tree)
 
 void removeFromPageTree(long pageNumber, void* tree)
 {
-	set<long>* prTree = static_cast<set<long> *>(tree);
+	DoubleTree *prTree = static_cast<DoubleTree *>(tree);
 	prTree->removePage(pageNumber);
 }
 
@@ -130,7 +132,7 @@ int countPageTree(void* tree)
 	return prTree->treeSize();
 }
 
-void removeOldestPage(void *tree)
+long removeOldestPage(void *tree)
 {
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);

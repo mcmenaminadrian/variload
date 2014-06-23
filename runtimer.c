@@ -11,7 +11,6 @@
 #include <curses.h>
 #include "pages.h"
 #include "threadhandler.h"
-#include "opttree.h"
 #include "analysis.h"
 
 #define BARRIER 1
@@ -271,7 +270,6 @@ int startFirstThread(char* outputprefix)
 	struct ThreadResources *firstThreadResources;
 	
 	//start the first thread
-	//first task is read the OPT string
 	struct ThreadGlobal* globalThreadList =
 		(struct ThreadGlobal*)malloc(sizeof (struct ThreadGlobal));
 	if (!globalThreadList) {
@@ -307,18 +305,7 @@ int startFirstThread(char* outputprefix)
 	firstThreadLocal->prevInstructionCount = 0;
 	firstThreadLocal->prevFaultCount = 0;
 
-
 	firstThreadLocal->threadNumber = startTR->number;
-	globalThreadList->outputPrefix = (char*) malloc(BUFFSZ);
-	if (!globalThreadList->outputPrefix) {
-		fprintf(stderr,
-			"Could not allocate buffer for output prefix.\n");
-		goto failOutput;
-	}
-	strcpy(globalThreadList->outputPrefix, outputprefix);
-
-	sprintf(threadname, "%s%i.bin", outputprefix, startTR->number);
-	readOPTTree(firstThreadLocal->optTree, threadname);
 
 	//prepare to start the thread
 	firstThreadResources =
@@ -361,7 +348,6 @@ failThreads:
 failMutex:
 	free(firstThreadResources);
 failResources:
-	free(globalThreadList->outputPrefix);
 failOutput:
 	free(firstThreadLocal);
 failFirstThreadLocal:
