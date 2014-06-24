@@ -30,7 +30,7 @@ class DoubleTree
 long DoubleTree::getUnixTimeChrono() const
 {
     auto timeSinceEpoch = chrono::system_clock::now().time_since_epoch();
-    return chrono::duration_cast<chrono::milliseconds>(timeSinceEpoch).count();
+    return chrono::duration_cast<chrono::microseconds>(timeSinceEpoch).count();
 }
 
 void DoubleTree::insertPage(const long pageNumber)
@@ -65,7 +65,6 @@ long DoubleTree::removePage(const long pageNumber)
 	}
 	long timeToGo = itPage->second;
 	itTick = tickTree.equal_range(timeToGo);
-	pageTree.erase(itPage);
 	for (multimap<long, long>::iterator it = itTick.first;
 		it != itTick.second; it++)
 	{
@@ -136,7 +135,7 @@ long removeOldestPage(void *tree)
 {
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
-	prTree->removePage(prTree->oldestPage());
+	return prTree->removePage(prTree->oldestPage());
 }
 
 }// end extern "C"		

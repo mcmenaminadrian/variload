@@ -9,9 +9,9 @@ clean:
 	rm -f *.o
 
 # normal build
-lru2analysis: runtimer.o insttree.o rbpages.o threadhandler.o \
+lru2analysis: runtimer.o insttree.o pages.o threadhandler.o \
 	analysis.o
-	g++ -O2 -o lru2aysis -Wall insttree.o rbpages.o analysis.o \
+	g++ -O2 -o lru2aysis -Wall insttree.o pages.o analysis.o \
 		threadhandler.o runtimer.o -lexpat -lpthread -lncurses
 
 analysis.o: analysis.cpp threadhandler.h analysis.h
@@ -23,16 +23,16 @@ insttree.o: insttree.cpp insttree.h
 threadhandler.o: threadhandler.c threadhandler.h analysis.h
 	gcc -O2 -o threadhandler.o -c -Wall threadhandler.c
 
-rbpages.o: pages.cpp 
-	g++ -O2 -o rbpages.o -c -Wall pages.cpp
+pages.o: pages.cpp 
+	g++ -O2 -o pages.o -c -Wall pages.cpp
 
 runtimer.o: runtimer.c threadhandler.h 
 	gcc -O2 -o runtimer.o -c -Wall runtimer.c
 
 # debug build
-debuglru2analysis: druntimer.o dinsttree.o drbpages.o dthreadhandler.o \
+debuglru2analysis: druntimer.o dinsttree.o dpages.o dthreadhandler.o \
 	danalysis.o
-	g++ -g -o lru2aysis -Wall dinsttree.o drbpages.o \
+	g++ -g -o lru2aysis -Wall dinsttree.o dpages.o \
 		danalysis.o \
 		dthreadhandler.o druntimer.o -lexpat -lpthread -lncurses
 
@@ -45,8 +45,8 @@ dinsttree.o: insttree.cpp insttree.h
 dthreadhandler.o: threadhandler.c threadhandler.h analysis.h
 	gcc -g -o dthreadhandler.o -c -Wall threadhandler.c
 
-drbpages.o: pages.cpp
-	g++ -g -o drbpages.o -c -Wall pages.cpp
+dpages.o: pages.cpp
+	g++ -g -o dpages.o -c -Wall pages.cpp
 
 druntimer.o: runtimer.c threadhandler.h 
 	gcc -g -o druntimer.o -c -Wall runtimer.c
