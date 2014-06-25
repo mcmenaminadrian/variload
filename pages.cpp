@@ -57,7 +57,7 @@ long DoubleTree::removePage(const long pageNumber)
 		multimap<long, long>::iterator> itTick;
 
 	itPage = pageTree.find(pageNumber);
-	if (itPage == pageTree.end() )
+	if (itPage == pageTree.end())
 	{
 		cout << "ERROR: page does not exist in tree: " << pageNumber;
 		cout << "\n";
@@ -65,13 +65,18 @@ long DoubleTree::removePage(const long pageNumber)
 	}
 	long timeToGo = itPage->second;
 	itTick = tickTree.equal_range(timeToGo);
+	bool found = false;
 	for (multimap<long, long>::iterator it = itTick.first;
 		it != itTick.second; it++)
 	{
 		if (it->second == pageNumber) {
 			tickTree.erase(it);
+			found = true;
 			break;
 		}
+	}
+	if (!found) {
+		cout << "Did not find page " << pageNumber << "\n";
 	}
 	pageTree.erase(pageNumber);
 	return pageNumber;
@@ -81,7 +86,6 @@ long DoubleTree::oldestPage() const
 {
 	return tickTree.begin()->second;
 }
-
 
 extern "C" {
 
@@ -135,7 +139,8 @@ long removeOldestPage(void *tree)
 {
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
-	return prTree->removePage(prTree->oldestPage());
+	long oldPage = prTree->oldestPage();
+	return prTree->removePage(oldPage);
 }
 
 }// end extern "C"		
