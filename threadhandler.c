@@ -129,7 +129,7 @@ promoteToHighTree(long pageNumber, struct ThreadResources *thResources)
 {
 	struct ThreadGlobal *globals = thResources->globals;
 	removeFromPageTree(pageNumber, globals->lowTree);
-	if (countPageTree(globals->highTree) == globals->maxHighSize) {
+	if (countPageTree(globals->highTree) >= globals->maxHighSize) {
 		long oldestPage = removeOldestPage(globals->highTree);
 		insertIntoPageTree(oldestPage, globals->lowTree);
 	}
@@ -156,11 +156,13 @@ notInGlobalTree(long pageNumber, struct ThreadResources *thResources)
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 	if (faultPage(pageNumber, thResources) > 0) {
 		pthread_mutex_lock(&globals->threadGlobalLock);
-		insertIntoPageTree(pageNumber, globals->lowTree);
-		if (countPageTree(globals->lowTree) > globals->maxLowSize) {
+			if (countPageTree(globals->lowTree)
+				>= globals->maxLowSize)
+		{
 			long killPage = removeOldestPage(globals->lowTree);
 			doneWithRecord(killPage, thResources);
 		}
+		insertIntoPageTree(pageNumber, globals->lowTree);
 		pthread_mutex_unlock(&globals->threadGlobalLock);
 	}
 	incrementCoresInUse(thResources);
