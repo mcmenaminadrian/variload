@@ -266,7 +266,6 @@ int startFirstThread(char* outputprefix)
 {
 	int errL, errG;
 	struct ThreadLocal *firstThreadLocal;
-	char threadname[BUFFSZ];
 	struct ThreadResources *firstThreadResources;
 	
 	//start the first thread

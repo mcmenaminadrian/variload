@@ -50,7 +50,7 @@ bool DoubleTree::locatePage(const long pageNumber) const
 
 long DoubleTree::removePage(const long pageNumber)
 {
-	itPage = pageTree.find(pageNumber);
+	map<long, long>::iterator itPage = pageTree.find(pageNumber);
 	if (itPage == pageTree.end())
 	{
 		cout << "ERROR: page does not exist in tree: " << pageNumber;

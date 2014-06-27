@@ -9,7 +9,7 @@ clean:
 	rm -f *.o
 
 # normal build
-lru2analysis: runtimer.o insttree.o pages.o threadhandler.o \
+lru2analysis: runtimer.o pages.o threadhandler.o \
 	analysis.o
 	g++ -O2 -o lru2aysis -Wall pages.o analysis.o \
 		threadhandler.o runtimer.o -lexpat -lpthread -lncurses
@@ -27,7 +27,7 @@ runtimer.o: runtimer.c threadhandler.h
 	gcc -O2 -o runtimer.o -c -Wall runtimer.c
 
 # debug build
-debuglru2analysis: druntimer.o dinsttree.o dpages.o dthreadhandler.o \
+debuglru2analysis: druntimer.o dpages.o dthreadhandler.o \
 	danalysis.o
 	g++ -g -O0 -o lru2aysis -Wall dpages.o \
 		danalysis.o \
