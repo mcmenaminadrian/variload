@@ -11,14 +11,11 @@ clean:
 # normal build
 lru2analysis: runtimer.o insttree.o pages.o threadhandler.o \
 	analysis.o
-	g++ -O2 -o lru2aysis -Wall insttree.o pages.o analysis.o \
+	g++ -O2 -o lru2aysis -Wall pages.o analysis.o \
 		threadhandler.o runtimer.o -lexpat -lpthread -lncurses
 
 analysis.o: analysis.cpp threadhandler.h analysis.h
 	g++ -O2 -o analysis.o -c -Wall analysis.cpp
-
-insttree.o: insttree.cpp insttree.h 
-	g++ -O2 -o insttree.o -c -Wall insttree.cpp
 
 threadhandler.o: threadhandler.c threadhandler.h analysis.h
 	gcc -O2 -o threadhandler.o -c -Wall threadhandler.c
@@ -32,15 +29,12 @@ runtimer.o: runtimer.c threadhandler.h
 # debug build
 debuglru2analysis: druntimer.o dinsttree.o dpages.o dthreadhandler.o \
 	danalysis.o
-	g++ -g -O0 -o lru2aysis -Wall dinsttree.o dpages.o \
+	g++ -g -O0 -o lru2aysis -Wall dpages.o \
 		danalysis.o \
 		dthreadhandler.o druntimer.o -lexpat -lpthread -lncurses
 
 danalysis.o: analysis.cpp threadhandler.h analysis.h
 	g++ -g -O0 -o danalysis.o -c -Wall analysis.cpp
-
-dinsttree.o: insttree.cpp insttree.h 
-	g++ -g -O0 -o dinsttree.o -c -Wall insttree.cpp
 
 dthreadhandler.o: threadhandler.c threadhandler.h analysis.h
 	gcc -g -O0 -o dthreadhandler.o -c -Wall threadhandler.c
