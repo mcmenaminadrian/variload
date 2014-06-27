@@ -22,7 +22,7 @@ class DoubleTree
 	void insertPage(const long pageNumber);
 	bool locatePage(const long pageNumber) const;
 	long removePage(const long pageNumber);
-	long oldestPage() const;
+	long oldestPage();
 	long treeSize() const { return pageTree.size();}
 };
 
@@ -61,15 +61,15 @@ long DoubleTree::removePage(const long pageNumber)
 	return pageNumber;
 }
 
-long DoubleTree::oldestPage() const
+long DoubleTree::oldestPage()
 {
-	map<long, long>::iterator it;
 	long pageToKill = pageTree.begin()->first;
 	long timeToKill = pageTree.begin()->second;
-	for (it = pageTree.begin(); it != pageTree.end(); it++) {
-		if (it->second < timeToKill) {
-			timeToKill = it->second;
-			pageToKill = it->first;
+	for (map<long, long>::iterator itOld = pageTree.begin();
+		itOld != pageTree.end(); itOld++) {
+		if (itOld->second < timeToKill) {
+			timeToKill = itOld->second;
+			pageToKill = itOld->first;
 		}
 	}	
 	return pageToKill;
