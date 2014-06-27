@@ -107,7 +107,6 @@ fail:
 	return;
 }
 
-
 static int faultPage(long pageNumber, struct ThreadResources *thResources)
 {
 	int countDown = (4096 * 100)/MEMWIDTH ;

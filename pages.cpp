@@ -16,7 +16,6 @@ class DoubleTree
 {
 	private:
 	map<long, long> pageTree;
-	multimap<long, long> tickTree;
 	long getUnixTimeChrono() const;
 
 	public:
@@ -37,7 +36,6 @@ void DoubleTree::insertPage(const long pageNumber)
 {
 	long insertTime = getUnixTimeChrono();
 	pageTree.insert(pair<long, long>(pageNumber, insertTime));
-	tickTree.insert(pair<long, long>(insertTime, pageNumber));
 }
 
 bool DoubleTree::locatePage(const long pageNumber) const
@@ -52,10 +50,6 @@ bool DoubleTree::locatePage(const long pageNumber) const
 
 long DoubleTree::removePage(const long pageNumber)
 {
-	map<long, long>::iterator itPage;
-	pair<multimap<long, long>::iterator,
-		multimap<long, long>::iterator> itTick;
-
 	itPage = pageTree.find(pageNumber);
 	if (itPage == pageTree.end())
 	{
@@ -63,34 +57,25 @@ long DoubleTree::removePage(const long pageNumber)
 		cout << "\n";
 		return -1;
 	}
-	long timeToGo = itPage->second;
-	itTick = tickTree.equal_range(timeToGo);
-	bool found = false;
-	for (multimap<long, long>::iterator it = itTick.first;
-		it != itTick.second; it++)
-	{
-		if (it->second == pageNumber) {
-			tickTree.erase(it);
-			found = true;
-			break;
-		}
-	}
-	if (!found) {
-		cout << "Did not find page " << pageNumber << "\n";
-	}
 	pageTree.erase(pageNumber);
 	return pageNumber;
 }
 
 long DoubleTree::oldestPage() const
 {
-	return tickTree.begin()->second;
+	map<long, long>::iterator it;
+	long pageToKill = pageTree.begin()->first;
+	long timeToKill = pageTree.begin()->second;
+	for (it = pageTree.begin(); it != pageTree.end(); it++) {
+		if (it->second < timeToKill) {
+			timeToKill = it->second;
+			pageToKill = it->first;
+		}
+	}	
+	return pageToKill;
 }
 
 extern "C" {
-
-long findNextInstruction(unsigned long cI, long pN, void* tree);
-void insertIntoTree(long, long, void*);
 
 void* createPageTree(void)
 {

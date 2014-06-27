@@ -32,23 +32,23 @@ runtimer.o: runtimer.c threadhandler.h
 # debug build
 debuglru2analysis: druntimer.o dinsttree.o dpages.o dthreadhandler.o \
 	danalysis.o
-	g++ -g -o lru2aysis -Wall dinsttree.o dpages.o \
+	g++ -g -O0 -o lru2aysis -Wall dinsttree.o dpages.o \
 		danalysis.o \
 		dthreadhandler.o druntimer.o -lexpat -lpthread -lncurses
 
 danalysis.o: analysis.cpp threadhandler.h analysis.h
-	g++ -g -o danalysis.o -c -Wall analysis.cpp
+	g++ -g -O0 -o danalysis.o -c -Wall analysis.cpp
 
 dinsttree.o: insttree.cpp insttree.h 
-	g++ -g -o dinsttree.o -c -Wall insttree.cpp
+	g++ -g -O0 -o dinsttree.o -c -Wall insttree.cpp
 
 dthreadhandler.o: threadhandler.c threadhandler.h analysis.h
-	gcc -g -o dthreadhandler.o -c -Wall threadhandler.c
+	gcc -g -O0 -o dthreadhandler.o -c -Wall threadhandler.c
 
 dpages.o: pages.cpp
-	g++ -g -o dpages.o -c -Wall pages.cpp
+	g++ -g -O0 -o dpages.o -c -Wall pages.cpp
 
 druntimer.o: runtimer.c threadhandler.h 
-	gcc -g -o druntimer.o -c -Wall runtimer.c
+	gcc -g -O0 -o druntimer.o -c -Wall runtimer.c
 
 
