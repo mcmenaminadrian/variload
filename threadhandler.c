@@ -8,7 +8,6 @@
 #include <curses.h>
 #include "threadhandler.h"
 #include "pages.h"
-#include "insttree.h"
 #include "analysis.h"
 
 static int threadline = 10;
