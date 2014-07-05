@@ -63,7 +63,7 @@ void* writeDataThread(void* tRes)
 	struct ThreadRecord* records = threadResources->records;
 	initscr();
 	move(0,0);
-	printw("Pageanalysis OPT");
+	printw("Pageanalysis LRU/2");
 	move(1,0);
 	printw("Copyright, (c) Adrian McMenamin, 2014");
 	move(2,0);
@@ -213,7 +213,7 @@ void cleanThreadList(struct ThreadRecord *root)
 
 void usage()
 {
-	printf("USAGE: runtimer controlfile prefix\n");
+	printf("USAGE: lru2aysis controlfile\n");
 }
 
 static void XMLCALL

@@ -43,7 +43,7 @@ void writeIntToFile(ofstream& inFile, unsigned int value)
 
 ofstream& openXMLAnalysisFile()
 {
-	xmlAnalysisFile.open("pageanalysis.xml");
+	xmlAnalysisFile.open("lru2analysis.xml");
 
 	xmlAnalysisFile << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 	xmlAnalysisFile << "<!DOCTYPE pageanalysis [\n";
