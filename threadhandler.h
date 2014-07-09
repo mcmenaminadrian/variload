@@ -2,9 +2,9 @@
 #define __THREAD_HANDLER_H_
 
 #define BUFFSZ 512
-#define BITSHIFT 12
+#define BITSHIFT 11
 #define CORES 16
-#define COREMEM 32768
+#define COREMEM 28672
 #define HIGH 0.67
 #define MEMWIDTH 16
 #define PAGESIZE (1 << BITSHIFT) 

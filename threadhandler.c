@@ -108,7 +108,7 @@ fail:
 
 static int faultPage(long pageNumber, struct ThreadResources *thResources)
 {
-	int countDown = (4096 * 100)/MEMWIDTH ;
+	int countDown = (2048 * 100)/MEMWIDTH ;
 	while (countDown) {
 		if (locatePageTreePR(pageNumber,
 			thResources->globals->lowTree) || locatePageTreePR(
@@ -134,6 +134,7 @@ promoteToHighTree(long pageNumber, struct ThreadResources *thResources)
 	insertIntoPageTree(pageNumber, globals->highTree);
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 	updateTickCount(thResources);
+	updateTickCount(thResources);
 }
 
 static void
@@ -143,6 +144,7 @@ updateHighTree(long pageNumber, struct ThreadResources *thResources)
 	removeFromPageTree(pageNumber, globals->highTree);
 	insertIntoPageTree(pageNumber, globals->highTree);
 	pthread_mutex_unlock(&globals->threadGlobalLock);
+	updateTickCount(thResources);
 	updateTickCount(thResources);
 }
 
