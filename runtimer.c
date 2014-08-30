@@ -9,12 +9,13 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <curses.h>
+#include <unistd.h>
 #include "pages.h"
 #include "threadhandler.h"
 #include "analysis.h"
 
-#define BARRIER 1
-#define SUPER 100000
+int BARRIER = 1;
+int SUPER = 100000;
 #define THREADLINE 5
 
 struct ThreadRecord *startTR = NULL;
@@ -27,7 +28,7 @@ static pthread_cond_t enoughCores = PTHREAD_COND_INITIALIZER;
 static int threadsActive = 0;
 static int threadsLocked = 0;
 static int coresInUse = 0;
-static int writeCountDown = SUPER;
+static int writeCountDown;
 static pthread_t dataThread;
 
 
@@ -347,7 +348,6 @@ failThreads:
 failMutex:
 	free(firstThreadResources);
 failResources:
-failOutput:
 	free(firstThreadLocal);
 failFirstThreadLocal:
 	removePageTree(globalThreadList->highTree);
@@ -359,17 +359,56 @@ failed:
 	return -1;
 }
 
+int tickFind = 4;
+int tickLoad = 100;
+int cores = 16;
+int pageShift = 11;
+int shiftMemoryPerCore = 15;
+int shiftPageTablePerCore = 12;
+
 
 int main(int argc, char* argv[])
 {
 	FILE* inXML;
+	char *fileIn = NULL;
+	char *fileOut = NULL;
 	char data[BUFFSZ]; 
 	size_t len = 0;
-	int done;	
+	int done;
+	int i;
+	writeCountDown = SUPER;	
 
 	if (argc < 2) {
 		usage();
 		exit(-1);
+	}
+
+	while ((i = getopt(argc, argv, "f:l:c:p:t:s:i:o:")) != -1)
+		switch(i) {
+		case 'f':
+			tickFind = atoi(optarg);
+			break;
+		case 'l':
+			tickLoad = atoi(optarg);
+			break;
+		case 'c':
+			cores = atoi(optarg);
+			break;
+		case 's':
+			pageShift = atoi(optarg);
+			break;
+		case 'p':
+			shiftMemoryPerCore = atoi(optarg);
+			break;
+		case 't':
+			shiftPageTablePerCore = atoi(optarg);
+			break;
+		case 'i':
+			fileIn = optarg;
+			break;
+		case 'o':
+			fileOut = optarg;
+			break;
 	}
 
 	XML_Parser p_ctrl = XML_ParserCreate("UTF-8");
@@ -379,9 +418,9 @@ int main(int argc, char* argv[])
 	}
 
 	XML_SetStartElementHandler(p_ctrl, starthandler);
-	inXML = fopen(argv[1], "r");
+	inXML = fopen(fileIn, "r");
 	if (inXML == NULL) {
-		fprintf(stderr, "Could not open %s\n", argv[1]);
+		fprintf(stderr, "Could not open %s\n", fileIn);
 		XML_ParserFree(p_ctrl);
 		exit(-1);
 	}

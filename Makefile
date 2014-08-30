@@ -18,13 +18,13 @@ analysis.o: analysis.cpp threadhandler.h analysis.h
 	g++ -std=c++0x -O2 -o analysis.o -c -Wall analysis.cpp
 
 threadhandler.o: threadhandler.c threadhandler.h analysis.h
-	gcc -std=c++0x -O2 -o threadhandler.o -c -Wall threadhandler.c
+	gcc -O2 -o threadhandler.o -c -Wall threadhandler.c
 
 pages.o: pages.cpp 
 	g++ -std=c++0x -O2 -o pages.o -c -Wall pages.cpp
 
 runtimer.o: runtimer.c threadhandler.h 
-	gcc -std=c++0x -O2 -o runtimer.o -c -Wall runtimer.c
+	gcc -O2 -o runtimer.o -c -Wall runtimer.c
 
 # debug build
 debuglru2analysis: druntimer.o dpages.o dthreadhandler.o \

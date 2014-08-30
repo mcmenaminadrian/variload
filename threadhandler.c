@@ -99,10 +99,8 @@ failTA:
 	free(threadResources);
 failTR:
 failLock:
-failOPT:
 	free(localThreadStuff);
 failTL:
-fail:
 	return;
 }
 
