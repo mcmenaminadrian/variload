@@ -120,6 +120,14 @@ static int faultPage(long pageNumber, struct ThreadResources *thResources)
 	return 1;
 }
 
+static void coundownTicks(int tickNo, struct ThreadResources *thResources)
+{
+	int i;
+	for (i = 0; i < tickNo; i++) {
+		updateTickCount(thResources);
+	}
+}
+
 static void
 promoteToHighTree(long pageNumber, struct ThreadResources *thResources,
 	long offset)
@@ -132,8 +140,7 @@ promoteToHighTree(long pageNumber, struct ThreadResources *thResources,
 	}
 	insertIntoPageTree(pageNumber, globals->highTree);
 	pthread_mutex_unlock(&globals->threadGlobalLock);
-	updateTickCount(thResources);
-	updateTickCount(thResources);
+	countdownTicks(tickFind, thResources);
 }
 
 static void
@@ -144,8 +151,7 @@ updateHighTree(long pageNumber, struct ThreadResources *thResources,
 	removeFromPageTree(pageNumber, globals->highTree);
 	insertIntoPageTree(pageNumber, globals->highTree);
 	pthread_mutex_unlock(&globals->threadGlobalLock);
-	updateTickCount(thResources);
-	updateTickCount(thResources);
+	countdownTicks(tickFind, thResources);
 }
 
 static void 
@@ -165,6 +171,7 @@ notInGlobalTree(long pageNumber, struct ThreadResources *thResources,
 		}
 		insertIntoPageTree(pageNumber, globals->lowTree, offset);
 		pthread_mutex_unlock(&globals->threadGlobalLock);
+		countdownTicks(tickFind, thResources);
 	}
 	incrementCoresInUse(thResources);
 }
