@@ -106,7 +106,7 @@ failTL:
 
 static int faultPage(long pageNumber, struct ThreadResources *thResources)
 {
-	int countDown = (2048 * 100)/MEMWIDTH ;
+	int countDown = tickWait/MEMWIDTH;
 	while (countDown) {
 		if (locatePageTreePR(pageNumber,
 			thResources->globals->lowTree) || locatePageTreePR(
@@ -121,7 +121,8 @@ static int faultPage(long pageNumber, struct ThreadResources *thResources)
 }
 
 static void
-promoteToHighTree(long pageNumber, struct ThreadResources *thResources)
+promoteToHighTree(long pageNumber, struct ThreadResources *thResources,
+	long offset)
 {
 	struct ThreadGlobal *globals = thResources->globals;
 	removeFromPageTree(pageNumber, globals->lowTree);
@@ -136,7 +137,8 @@ promoteToHighTree(long pageNumber, struct ThreadResources *thResources)
 }
 
 static void
-updateHighTree(long pageNumber, struct ThreadResources *thResources)
+updateHighTree(long pageNumber, struct ThreadResources *thResources,
+	long offset)
 {
 	struct ThreadGlobal *globals = thResources->globals;
 	removeFromPageTree(pageNumber, globals->highTree);
@@ -147,7 +149,8 @@ updateHighTree(long pageNumber, struct ThreadResources *thResources)
 }
 
 static void 
-notInGlobalTree(long pageNumber, struct ThreadResources *thResources)
+notInGlobalTree(long pageNumber, struct ThreadResources *thResources,
+	long offset)
 {
 	struct ThreadGlobal *globals = thResources->globals;
 	decrementCoresInUse();
@@ -160,7 +163,7 @@ notInGlobalTree(long pageNumber, struct ThreadResources *thResources)
 			long killPage = removeOldestPage(globals->lowTree);
 			doneWithRecord(killPage, thResources);
 		}
-		insertIntoPageTree(pageNumber, globals->lowTree);
+		insertIntoPageTree(pageNumber, globals->lowTree, offset);
 		pthread_mutex_unlock(&globals->threadGlobalLock);
 	}
 	incrementCoresInUse(thResources);
@@ -170,7 +173,7 @@ static void XMLCALL
 threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 { 
 	int i, overrun;
-	long address, pageNumber, size, resSize;
+	long address, pageNumber, size, resSize, offset;
 	struct ThreadResources *thResources;
 	struct ThreadGlobal *globals;
 	struct ThreadLocal *local;
@@ -197,6 +200,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 			if (strcmp(attr[i], "address") == 0) {
 				address = strtol(attr[i+1], NULL, 16);
 				pageNumber = address >> BITSHIFT;
+				offset = address ^ (pageNumber << BITSHIFT);
 				local->anDestination = address;
 				local->anPage = pageNumber;
 				continue;
@@ -216,31 +220,33 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 		//have address - is it already present?
 		pthread_mutex_lock(&globals->threadGlobalLock);
 		if (locatePageTreePR(pageNumber, globals->lowTree)) {
-			promoteToHighTree(pageNumber, thResources);
+			promoteToHighTree(pageNumber, thResources, offset);
 		} else {
 			if (locatePageTreePR(pageNumber, globals->highTree)) {
-				updateHighTree(pageNumber, thResources);
+				updateHighTree(pageNumber, thResources, offset);
 			} else {
-				notInGlobalTree(pageNumber, thResources);
+				notInGlobalTree(pageNumber, thResources, offset);
 			}
 		}
 		insertRecord(thResources);
 		if (overrun) {
 			pthread_mutex_lock(&globals->threadGlobalLock);
+			offset = 0;
 			local->anSize = resSize;
 			local->anDestination = (pageNumber + 1) << BITSHIFT;
 			local->anPage = pageNumber + 1;
 			if (locatePageTreePR(pageNumber + 1,
 				globals->lowTree)) {
-				promoteToHighTree(pageNumber + 1, thResources);
+				promoteToHighTree(pageNumber + 1, thResources,
+					offset);
 			} else {
 				if (locatePageTreePR(pageNumber + 1,
-					globals->highTree)) {
+					globals->highTree, offset)) {
 					updateHighTree(pageNumber + 1,
-						thResources);
+						thResources, offset);
 				} else {
 					notInGlobalTree(pageNumber + 1,
-						thResources);
+						thResources, offset);
 				}
 			}
 			insertRecord(thResources);
@@ -255,33 +261,36 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 				if (locatePageTreePR(pageNumber,
 					globals->highTree)) {
 					updateHighTree(pageNumber,
-						thResources);
+						thResources, offset);
 				} else {
 					notInGlobalTree(pageNumber,
-						thResources);
+						thResources, offset);
 				}
 			}
 			insertRecord(thResources);
 			if (overrun) {
 				pthread_mutex_lock(&globals->threadGlobalLock);
+				offset = 0;
 				local->anSize = resSize;
 				local->anDestination =
 					(pageNumber + 1) << BITSHIFT;
 				local->anPage = pageNumber + 1;
 				if (locatePageTreePR(pageNumber + 1,
-					globals->lowTree)) {
+					globals->lowTree, offset)) {
 					promoteToHighTree(pageNumber + 1,
-						thResources);
+						thResources, offset);
 				} else {
 					if (locatePageTreePR(pageNumber + 1,
 						globals->highTree)) {
 							updateHighTree(
 								pageNumber + 1,
-								thResources);
+								thResources,
+								offset);
 					} else {
 						notInGlobalTree(
 							pageNumber + 1,
-							thResources);
+							thResources,
+							offset);
 					}
 				}
 				insertRecord(thResources);

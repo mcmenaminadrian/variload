@@ -31,6 +31,13 @@ static int coresInUse = 0;
 static int writeCountDown;
 static pthread_t dataThread;
 
+int tickFind = 4;
+int tickLoad = 100;
+int cores = 16;
+int pageShift = 11;
+int shiftMemoryPerCore = 15;
+int shiftPageTablePerCore = 12;
+
 
 //self-contained thread code that writes out performance data
 void* writeDataThread(void* tRes)
@@ -359,12 +366,6 @@ failed:
 	return -1;
 }
 
-int tickFind = 4;
-int tickLoad = 100;
-int cores = 16;
-int pageShift = 11;
-int shiftMemoryPerCore = 15;
-int shiftPageTablePerCore = 12;
 
 
 int main(int argc, char* argv[])
