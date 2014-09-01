@@ -8,9 +8,44 @@
 #include <pthread.h>
 #include <sched.h>
 #include <chrono>
+#include <boost/dynamic_bitset.hpp>
 #include "threadhandler.h"
 
 using namespace std;
+
+class PartialPage
+{
+	private:
+	boost::dynamic_bitset bitmap;
+	long time;
+
+	public:
+	PartialPage(const long bitLength, const long t):time(t);
+	const bool getBitmap(const long sequence) const;
+	const bool setBitmap(const long sequence);
+}
+
+PartialPage::PartialPage(const long bitlength, const long t):time(t)
+{
+	bitmap(bitlength);
+}
+
+const bool PartialPage::getBitmap(const long sequence) const
+{
+	if (sequence > bitmap.size()) {
+		return false;
+	}
+	return (bitmap[sequence] == 1);
+}
+
+const bool PartialPage::setBitmap(const long sequence)
+{
+	if (sequence > bitmap.size()) {
+		return false;
+	}
+	bitmap[sequence] = 1;
+	return true;
+}
 
 class DoubleTree
 {
