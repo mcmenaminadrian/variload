@@ -18,14 +18,18 @@ class PartialPage
 	private:
 	boost::dynamic_bitset bitmap;
 	long time;
+	const long pageNumber;
 
 	public:
-	PartialPage(const long bitLength, const long t):time(t);
+	PartialPage(const long pNumber const long bitLength, long t):
+		time(t), pageNumber(pNumber);
 	const bool getBitmap(const long sequence) const;
 	const bool setBitmap(const long sequence);
+	const long getPageNumber() const;
 }
 
-PartialPage::PartialPage(const long bitlength, const long t):time(t)
+PartialPage::PartialPage(const long pNumber, const long bitlength, long t):
+	time(t), pageNumber(pNumber)
 {
 	bitmap(bitlength);
 }
@@ -47,15 +51,21 @@ const bool PartialPage::setBitmap(const long sequence)
 	return true;
 }
 
+const long PartialPage::getPageNumber() const
+{
+	return pageNumber;
+}
+
 class DoubleTree
 {
 	private:
-	map<long, long> pageTree;
+	map<long, PartialPage> pageTree;
 	long getUnixTimeChrono() const;
 
 	public:
-	void insertPage(const long pageNumber);
-	bool locatePage(const long pageNumber) const;
+	void insertNewPage(const long pageNumber, const long offset);
+	void insertOldPage(PartialPage& oldPage);
+	PartialPage& locatePage(const long pageNumber);
 	long removePage(const long pageNumber);
 	long oldestPage();
 	long treeSize() const { return pageTree.size();}
@@ -67,10 +77,12 @@ long DoubleTree::getUnixTimeChrono() const
     return chrono::duration_cast<chrono::microseconds>(timeSinceEpoch).count();
 }
 
-void DoubleTree::insertPage(const long pageNumber)
+void DoubleTree::insertNewPage(const long pageNumber, const long offset)
 {
 	long insertTime = getUnixTimeChrono();
-	pageTree.insert(pair<long, long>(pageNumber, insertTime));
+	PartialPage inPage(pageNumber, bitlength, insertTime);
+	inPage.setBitmap(offset >> 4);
+	pageTree.insert(pair<long, PartialPage>(pageNumber, inPage));
 }
 
 bool DoubleTree::locatePage(const long pageNumber) const
