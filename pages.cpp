@@ -21,12 +21,13 @@ class PartialPage
 	const long pageNumber;
 
 	public:
-	PartialPage(const long pNumber const long bitLength, long t):
+	PartialPage(const long pNumber, const long bitLength, long t):
 		time(t), pageNumber(pNumber);
 	const bool getBitmap(const long sequence) const;
 	const bool setBitmap(const long sequence);
 	const long getPageNumber() const;
 	void setTime(long timeIn){time = timeIn;}
+	long getTime() const {return time;}
 }
 
 PartialPage::PartialPage(const long pNumber, const long bitlength, long t):
@@ -67,8 +68,8 @@ class DoubleTree
 	void insertNewPage(const long pageNumber, const long offset);
 	void insertOldPage(PartialPage& oldPage);
 	const bool offsetPresent(PartialPage& pPage, const long offset) const;
-	PartialPage& locatePage(const long pageNumber) const;
-	PartialPage& removePage(PartialPage& pageToGo);
+	pair<bool, PartialPage&> locatePage(const long pageNumber) const;
+	pair<bool, PartialPage&> removePage(const long pageNumber);
 	PartialPage& oldestPage() const;
 	const long treeSize() const { return pageTree.size();}
 };
@@ -94,37 +95,39 @@ void DoubleTree::insertOldPage(PartialPage& oldPage)
 	pageTree.insert(oldPage.getPageNumber(), oldPage);
 }
 
-bool DoubleTree::locatePage(const long pageNumber) const
+pair<bool, PartialPage&> DoubleTree::locatePage(const long pageNumber) const
 {
+	map<long, PartialPage>::iterator it;
+	it = pageTree.find(pageNumber);
 	if (pageTree.find(pageNumber) == pageTree.end())
 	{
-		return false;
+		return pair<false, PartialPage(0, 0, 0)>;
 	} else {
-		return true;
+		return pair<true, it->second>;
 	}
 }
 
-long DoubleTree::removePage(const long pageNumber)
+pair<bool, PartialPage&> DoubleTree::removePage(const long pageNumber)
 {
 	map<long, long>::iterator itPage = pageTree.find(pageNumber);
 	if (itPage == pageTree.end())
 	{
 		cout << "ERROR: page does not exist in tree: " << pageNumber;
 		cout << "\n";
-		return -1;
+		return pair<false, PartialPage(0, 0, 0)>;
 	}
 	pageTree.erase(pageNumber);
-	return pageNumber;
+	return pair<true, it->second>;
 }
 
 long DoubleTree::oldestPage()
 {
 	long pageToKill = pageTree.begin()->first;
-	long timeToKill = pageTree.begin()->second;
-	for (map<long, long>::iterator itOld = pageTree.begin();
+	long timeToKill = pageTree.begin()->second.getTime();
+	for (map<long, PartialPage>::iterator itOld = pageTree.begin();
 		itOld != pageTree.end(); itOld++) {
-		if (itOld->second < timeToKill) {
-			timeToKill = itOld->second;
+		if (itOld->second.getTime() < timeToKill) {
+			timeToKill = itOld->second.getTime();
 			pageToKill = itOld->first;
 		}
 	}	
