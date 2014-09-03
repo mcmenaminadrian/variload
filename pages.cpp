@@ -26,6 +26,7 @@ class PartialPage
 	const bool getBitmap(const long sequence) const;
 	const bool setBitmap(const long sequence);
 	const long getPageNumber() const;
+	void setTime(long timeIn){time = timeIn;}
 }
 
 PartialPage::PartialPage(const long pNumber, const long bitlength, long t):
@@ -65,10 +66,11 @@ class DoubleTree
 	public:
 	void insertNewPage(const long pageNumber, const long offset);
 	void insertOldPage(PartialPage& oldPage);
-	PartialPage& locatePage(const long pageNumber);
-	long removePage(const long pageNumber);
-	long oldestPage();
-	long treeSize() const { return pageTree.size();}
+	const bool offsetPresent(PartialPage& pPage, const long offset) const;
+	PartialPage& locatePage(const long pageNumber) const;
+	PartialPage& removePage(PartialPage& pageToGo);
+	PartialPage& oldestPage() const;
+	const long treeSize() const { return pageTree.size();}
 };
 
 long DoubleTree::getUnixTimeChrono() const
@@ -83,6 +85,13 @@ void DoubleTree::insertNewPage(const long pageNumber, const long offset)
 	PartialPage inPage(pageNumber, bitlength, insertTime);
 	inPage.setBitmap(offset >> 4);
 	pageTree.insert(pair<long, PartialPage>(pageNumber, inPage));
+}
+
+void DoubleTree::insertOldPage(PartialPage& oldPage)
+{
+	long insertTime = getUnixTimeChrono();
+	oldPage.setTime(insertTime);
+	pageTree.insert(oldPage.getPageNumber(), oldPage);
 }
 
 bool DoubleTree::locatePage(const long pageNumber) const
