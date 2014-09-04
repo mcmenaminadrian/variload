@@ -83,7 +83,7 @@ long DoubleTree::getUnixTimeChrono() const
 void DoubleTree::insertNewPage(const long pageNumber, const long offset)
 {
 	long insertTime = getUnixTimeChrono();
-	PartialPage inPage(pageNumber, bitlength, insertTime);
+	PartialPage inPage(pageNumber, BITLENGTH, insertTime);
 	inPage.setBitmap(offset >> 4);
 	pageTree.insert(pair<long, PartialPage>(pageNumber, inPage));
 }
@@ -148,12 +148,14 @@ void removePageTree(void* tree)
 	delete prTree;
 }
 
-void insertIntoPageTree(long pageNumber, void* tree)
+void insertNewIntoPageTree(long pageNumber, long offset, void* tree)
 {
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
-	prTree->insertPage(pageNumber);
+	prTree->insertNewPage(pageNumber, offset);
 }
+
+void insert
 
 long locatePageTreePR(long pageNumber, void* tree)
 {

@@ -9,6 +9,7 @@
 #define MEMWIDTH 16
 #define PAGESIZE (1 << BITSHIFT) 
 #define MAXTHREADS 18
+#define BITLENGTH (COREMEM >> 4)
 
 struct ThreadLocal;
 
@@ -62,15 +63,19 @@ struct ThreadGlobal
 	int maxLowSize;
 	struct ThreadArray *threads;
 	void* activePages;
+	const int totalCores;
+	const int usableMemoryPerCore;
+	const int waitingTicks;
+	const int loadingTicks;
 	pthread_mutex_t threadGlobalLock;
 };
 
 struct ThreadResources
 {
 	struct ThreadRecord *records;
-	struct ThreadGlobal* globals;
-	struct ThreadLocal* local;
-	void* activePages;
+	struct ThreadGlobal *globals;
+	struct ThreadLocal *local;
+	void *activePages;
 };
 
 struct PageChain {
@@ -82,9 +87,9 @@ struct PageChain {
 void* startThreadHandler(void *resources);
 void incrementActive(void);
 void decrementActive(void);
-void updateTickCount(struct ThreadResources* tRes);
+void updateTickCount(struct ThreadResources *tRes);
 
-void incrementCoresInUse(struct ThreadResources* tRes);
+void incrementCoresInUse(struct ThreadResources *tRes);
 void decrementCoresInUse(void);
 
 #endif
