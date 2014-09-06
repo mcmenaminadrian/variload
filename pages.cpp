@@ -65,7 +65,7 @@ class DoubleTree
 	long getUnixTimeChrono() const;
 
 	public:
-	void insertNewPage(const long pageNumber, const long offset);
+	void insertNewPage(const long pageNumber);
 	void insertOldPage(PartialPage& oldPage);
 	const bool offsetPresent(PartialPage& pPage, const long offset) const;
 	pair<bool, PartialPage&> locatePage(const long pageNumber) const;
@@ -80,10 +80,9 @@ long DoubleTree::getUnixTimeChrono() const
     return chrono::duration_cast<chrono::microseconds>(timeSinceEpoch).count();
 }
 
-void DoubleTree::insertNewPage(const long pageNumber, const long offset)
+void DoubleTree::insertNewPage(const long pageNumber)
 {
-	long insertTime = getUnixTimeChrono();
-	PartialPage inPage(pageNumber, BITLENGTH, insertTime);
+	PartialPage inPage(pageNumber, BITLENGTH, getUnixTimeChrono());
 	inPage.setBitmap(offset >> 4);
 	pageTree.insert(pair<long, PartialPage>(pageNumber, inPage));
 }
@@ -120,7 +119,7 @@ pair<bool, PartialPage&> DoubleTree::removePage(const long pageNumber)
 	return pair<true, it->second>;
 }
 
-long DoubleTree::oldestPage()
+PartialPage& DoubleTree::oldestPage()
 {
 	long pageToKill = pageTree.begin()->first;
 	long timeToKill = pageTree.begin()->second.getTime();
@@ -128,7 +127,7 @@ long DoubleTree::oldestPage()
 		itOld != pageTree.end(); itOld++) {
 		if (itOld->second.getTime() < timeToKill) {
 			timeToKill = itOld->second.getTime();
-			pageToKill = itOld->first;
+			pageToKill = itOld->second;
 		}
 	}	
 	return pageToKill;
@@ -148,14 +147,37 @@ void removePageTree(void* tree)
 	delete prTree;
 }
 
-void insertNewIntoPageTree(long pageNumber, long offset, void* tree)
+void insertNewIntoPageTree(long pageNumber, void* tree)
 {
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
-	prTree->insertNewPage(pageNumber, offset);
+	//insert page with empty bitmap
+	prTree->insertNewPage(pageNumber);
 }
 
-void insert
+void insertOldIntoPageTree(long pageNumber, void* oldTree, void* newTree)
+{
+	DoubleTree *destTree, *srcTree;
+	destTree = static_cast<DoubleTree *>(newTree);
+	srcTree = static_cast<DoubleTree *>(oldTree);
+	pair<bool, PartialPage&> result = srcTree->removePage(pageNumber);
+	if (result->first == true) {
+		destTree->insertOldPage(result->second);
+		return;
+	} else {
+	 fprintf(stderr, "Could not swap page to new tree \n");
+	}
+}
+
+void swapOldestPageToLow(void *highTree, void *lowTree)
+{
+	DoubleTree *hTree, *lTree;
+	htree = static_cast<DoubleTree *>(highTree);
+	ltree = static_cast<DoubleTree *>(lowTree);
+	PartialPage oldPage = hTree->oldestPage();
+	lTree->insertOldPage(oldPage);
+	hTree->erase(oldPage->getPageNumber());
+}
 
 long locatePageTreePR(long pageNumber, void* tree)
 {
@@ -166,6 +188,27 @@ long locatePageTreePR(long pageNumber, void* tree)
 	} else {
 		return 0;
 	}
+}
+
+int locateSegment(long pageNumber, long segment, void *tree)
+{
+	DoubleTree *prTree;
+	prTree = static_cast<DoubleTree *>(tree);
+	pair<bool, PartialPage&> finding = prTree->locatePage(pageNumber);
+	if (finding->second.getBitmap(segment)) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+void markSegmentPresent(long PageNumber, long segment, void *tree)
+{
+	DoubleTree *prTree;
+	prTree = static_cast<DoubleTree *>(tree);
+	pair<bool, PartialPage&> finding = prTree->locatePage(pageNumber);
+	finding->second.setBitmap(segment);
+	finding->second.setTime(prTree->getUnixTimeChrono());
 }
 
 void removeFromPageTree(long pageNumber, void* tree)
@@ -179,6 +222,20 @@ int countPageTree(void* tree)
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
 	return prTree->treeSize();
+}
+
+void updateTree(long pageNumber, void *tree)
+{
+	DoubleTree *prTree;
+	prTree = static_cast<DoubleTree *>(tree);
+	pair<bool, PartialPage&> finding = prTree->locatePage(pageNumber);
+	if (finding->first) {
+		finding->second.setTime(prTree->getUnixTimeChrono());
+		return;
+	} else {
+		fprintf(stderr, "Tried update time on non existent page\n");
+		return;
+	}
 }
 
 long removeOldestPage(void *tree)

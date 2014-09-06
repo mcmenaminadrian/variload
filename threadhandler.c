@@ -120,7 +120,24 @@ static int faultPage(long pageNumber, struct ThreadResources *thResources)
 	return 1;
 }
 
-static void coundownTicks(int tickNo, struct ThreadResources *thResources)
+static void pullInSegment(long pageNumber, long segment,
+	struct ThreadResources *thResources, void *tree)
+{
+	struct ThreadGlobal *globals = thResources->globals;
+	int countDown = tickWait/MEMWIDTH;
+	pthread_mutex_unlock(&globals->threadGlobalLock);
+	while (countDown) {
+		if (locateSegment(pageNumber, segment, tree)) {
+			return;
+		}
+		updateTickCount(thResources)
+		countDown--;
+	}
+	markSegmentPresent(pageNumber, segment, tree);
+	countdownTicks(tickFind, thResources);
+}
+
+static void countdownTicks(int tickNo, struct ThreadResources *thResources)
 {
 	int i;
 	for (i = 0; i < tickNo; i++) {
@@ -129,27 +146,21 @@ static void coundownTicks(int tickNo, struct ThreadResources *thResources)
 }
 
 static void
-promoteToHighTree(long pageNumber, struct ThreadResources *thResources,
-	long offset)
+promoteToHighTree(long pageNumber, struct ThreadResources *thResources)
 {
 	struct ThreadGlobal *globals = thResources->globals;
-	removeFromPageTree(pageNumber, globals->lowTree);
 	if (countPageTree(globals->highTree) >= globals->maxHighSize) {
-		long oldestPage = removeOldestPage(globals->highTree);
-		insertIntoPageTree(oldestPage, globals->lowTree);
+		swapOldestPageToLow();
 	}
-	insertIntoPageTree(pageNumber, globals->highTree);
+	insertOldIntoPageTree(pageNumber, globals->lowTree,
+		globals->highTree);
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 	countdownTicks(tickFind, thResources);
 }
 
-static void
-updateHighTree(long pageNumber, struct ThreadResources *thResources,
-	long offset)
+static void updateHighTree(long pageNumber, void *highTree)
 {
-	struct ThreadGlobal *globals = thResources->globals;
-	removeFromPageTree(pageNumber, globals->highTree);
-	insertIntoPageTree(pageNumber, globals->highTree);
+	updateTree(pageNumber, highTree);
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 	countdownTicks(tickFind, thResources);
 }
@@ -159,18 +170,15 @@ notInGlobalTree(long pageNumber, struct ThreadResources *thResources,
 	long offset)
 {
 	struct ThreadGlobal *globals = thResources->globals;
+	int countDown = tickWait/MEMWIDTH;
 	decrementCoresInUse();
-	pthread_mutex_unlock(&globals->threadGlobalLock);
-	if (faultPage(pageNumber, thResources) > 0) {
-		pthread_mutex_lock(&globals->threadGlobalLock);
-			if (countPageTree(globals->lowTree)
-				>= globals->maxLowSize)
-		{
-			long killPage = removeOldestPage(globals->lowTree);
-			doneWithRecord(killPage, thResources);
-		}
-		insertIntoPageTree(pageNumber, globals->lowTree, offset);
-		pthread_mutex_unlock(&globals->threadGlobalLock);
+	if (countPageTree(globals->lowTree)>= globals->maxLowSize)
+	{
+		long killPage = removeOldestPage(globals->lowTree);
+		doneWithRecord(killPage, thResources);
+	}
+	insertNewIntoPageTree(pageNumber, globals->lowTree);
+	pullInSegment(pageNumber, offset, thResources, global->lowTree) 
 		countdownTicks(tickFind, thResources);
 	}
 	incrementCoresInUse(thResources);
@@ -227,11 +235,32 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 		//have address - is it already present?
 		pthread_mutex_lock(&globals->threadGlobalLock);
 		if (locatePageTreePR(pageNumber, globals->lowTree)) {
-			promoteToHighTree(pageNumber, thResources, offset);
-		} else {
-			if (locatePageTreePR(pageNumber, globals->highTree)) {
-				updateHighTree(pageNumber, thResources, offset);
+			//In low tree
+			if (!locateSegment(pageNumber, segment,
+				globals->lowTree)) {
+				//In low tree, segment not present
+				promoteToHighTree(pageNumber, thResources);
+				pullInSegement(pageNumber, segment,
+					thResources, globals->highTree);
 			} else {
+				//In low tree, segment present
+				promoteToHighTree(pageNumber, thResources);
+			}
+		} else {
+			//Not in low tree
+			if (locatePageTreePR(pageNumber, globals->highTree)) {
+				//In high tree
+				if (!locateSegment(pageNumber, segment,
+					globals->highTree)) {
+					//segment not present
+					pullInSegment(pageNumber, segment,
+						thResources,
+						globals->highTree);
+					} else {
+						//segment present
+						updateHighTree(pageNumber);
+			} else {
+				//not in either tree
 				notInGlobalTree(pageNumber, thResources, offset);
 			}
 		}
