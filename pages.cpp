@@ -13,27 +13,36 @@
 
 using namespace std;
 
+
 class PartialPage
 {
 	private:
-	boost::dynamic_bitset bitmap;
+	boost::dynamic_bitset<> bitmap;
 	long time;
 	const long pageNumber;
 
 	public:
-	PartialPage(const long pNumber, const long bitLength, long t):
-		time(t), pageNumber(pNumber);
+	PartialPage(const long pNumber, const long bitLength,
+		long t): pageNumber(pNumber) {
+		time = t;
+		bitmap = boost::dynamic_bitset<>(bitLength);
+	}
+	PartialPage(PartialPage& pp):pageNumber(pp.pageNumber) {
+		time = pp.time;
+		bitmap = boost::dynamic_bitset<>(pp.bitmap);
+	}
+	PartialPage& operator=(PartialPage& pp);
 	const bool getBitmap(const long sequence) const;
 	const bool setBitmap(const long sequence);
 	const long getPageNumber() const;
-	void setTime(long timeIn){time = timeIn;}
-	long getTime() const {return time;}
-}
+	void setTime(const long timeIn){time = timeIn;}
+	const long getTime() const {return time;}
+};
 
-PartialPage::PartialPage(const long pNumber, const long bitlength, long t):
-	time(t), pageNumber(pNumber)
+PartialPage& PartialPage::operator=(PartialPage& pp)
 {
-	bitmap(bitlength);
+	PartialPage& retPP(pp);
+	return retPP;
 }
 
 const bool PartialPage::getBitmap(const long sequence) const
@@ -68,11 +77,10 @@ class DoubleTree
 	void insertNewPage(const long pageNumber);
 	void insertOldPage(PartialPage& oldPage);
 	const bool offsetPresent(PartialPage& pPage, const long offset) const;
-	pair<bool, PartialPage&> locatePage(const long pageNumber) const;
+	pair<bool, PartialPage&> locatePage(const long pageNumber);
 	pair<bool, PartialPage&> removePage(const long pageNumber);
-	PartialPage& oldestPage() const;
+	PartialPage& oldestPage();
 	const long treeSize() const { return pageTree.size();}
-	void removePage(const long pageNumber){pageTree.erase(pageNumber);}
 };
 
 long DoubleTree::getUnixTimeChrono() const
@@ -83,44 +91,47 @@ long DoubleTree::getUnixTimeChrono() const
 
 void DoubleTree::insertNewPage(const long pageNumber)
 {
-	PartialPage inPage(pageNumber, BITLENGTH, getUnixTimeChrono());
-	inPage.setBitmap(offset >> 4);
-	pageTree.insert(pair<long, PartialPage>(pageNumber, inPage));
+	PartialPage inPage(pageNumber, PAGESIZE >> 4, getUnixTimeChrono());
+	pageTree.insert(pair<long, PartialPage&>(pageNumber, inPage));
 }
 
 void DoubleTree::insertOldPage(PartialPage& oldPage)
 {
 	long insertTime = getUnixTimeChrono();
 	oldPage.setTime(insertTime);
-	pageTree.insert(oldPage.getPageNumber(), oldPage);
+	pageTree.insert(pair<long, PartialPage&>(oldPage.getPageNumber(),
+		oldPage));
 }
 
-pair<bool, PartialPage&> DoubleTree::locatePage(const long pageNumber) const
+pair<bool, PartialPage&> DoubleTree::locatePage(const long pageNumber)
 {
 	map<long, PartialPage>::iterator it;
 	it = pageTree.find(pageNumber);
 	if (pageTree.find(pageNumber) == pageTree.end())
 	{
-		return pair<false, PartialPage(0, 0, 0)>;
+		PartialPage pp(0, 0, 0);
+		return pair<bool, PartialPage&>(false, pp);
 	} else {
-		return pair<true, it->second>;
+		return pair<bool, PartialPage&>(true, it->second);
 	}
 }
 
 pair<bool, PartialPage&> DoubleTree::removePage(const long pageNumber)
 {
-	map<long, long>::iterator itPage = pageTree.find(pageNumber);
+	map<long, PartialPage>::iterator itPage = pageTree.find(pageNumber);
 	if (itPage == pageTree.end())
 	{
 		cout << "ERROR: page does not exist in tree: " << pageNumber;
 		cout << "\n";
-		return pair<false, PartialPage()>;
+		PartialPage pp(0, 0, 0);
+		return pair<bool, PartialPage&>(false, pp);
 	}
-	pageTree.erase(pageNumber);
-	return pair<true, itPage->second>;
+	PartialPage foundPage = itPage->second;
+	pageTree.erase(itPage);
+	return pair<bool, PartialPage&>(true, foundPage);
 }
 
-PartialPage& DoubleTree::oldestPage() const
+PartialPage& DoubleTree::oldestPage()
 {
 	PartialPage& pageToKill = pageTree.begin()->second;
 	long timeToKill = pageTree.begin()->second.getTime();
@@ -184,7 +195,7 @@ long locatePageTreePR(long pageNumber, void* tree)
 {
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
-	if (prTree->locatePage(pageNumber)) {
+	if (prTree->locatePage(pageNumber).first) {
 		return 1;
 	} else {
 		return 0;
