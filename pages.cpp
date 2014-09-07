@@ -62,9 +62,9 @@ class DoubleTree
 {
 	private:
 	map<long, PartialPage> pageTree;
-	long getUnixTimeChrono() const;
 
 	public:
+	long getUnixTimeChrono() const;
 	void insertNewPage(const long pageNumber);
 	void insertOldPage(PartialPage& oldPage);
 	const bool offsetPresent(PartialPage& pPage, const long offset) const;
@@ -72,6 +72,7 @@ class DoubleTree
 	pair<bool, PartialPage&> removePage(const long pageNumber);
 	PartialPage& oldestPage() const;
 	const long treeSize() const { return pageTree.size();}
+	void removePage(const long pageNumber){pageTree.erase(pageNumber);}
 };
 
 long DoubleTree::getUnixTimeChrono() const
@@ -113,18 +114,18 @@ pair<bool, PartialPage&> DoubleTree::removePage(const long pageNumber)
 	{
 		cout << "ERROR: page does not exist in tree: " << pageNumber;
 		cout << "\n";
-		return pair<false, PartialPage(0, 0, 0)>;
+		return pair<false, PartialPage()>;
 	}
 	pageTree.erase(pageNumber);
-	return pair<true, it->second>;
+	return pair<true, itPage->second>;
 }
 
-PartialPage& DoubleTree::oldestPage()
+PartialPage& DoubleTree::oldestPage() const
 {
-	long pageToKill = pageTree.begin()->first;
+	PartialPage& pageToKill = pageTree.begin()->second;
 	long timeToKill = pageTree.begin()->second.getTime();
-	for (map<long, PartialPage>::iterator itOld = pageTree.begin();
-		itOld != pageTree.end(); itOld++) {
+	map<long, PartialPage>::iterator itOld;
+	for (itOld = pageTree.begin(); itOld != pageTree.end(); itOld++) {
 		if (itOld->second.getTime() < timeToKill) {
 			timeToKill = itOld->second.getTime();
 			pageToKill = itOld->second;
@@ -161,8 +162,8 @@ void insertOldIntoPageTree(long pageNumber, void* oldTree, void* newTree)
 	destTree = static_cast<DoubleTree *>(newTree);
 	srcTree = static_cast<DoubleTree *>(oldTree);
 	pair<bool, PartialPage&> result = srcTree->removePage(pageNumber);
-	if (result->first == true) {
-		destTree->insertOldPage(result->second);
+	if (result.first == true) {
+		destTree->insertOldPage(result.second);
 		return;
 	} else {
 	 fprintf(stderr, "Could not swap page to new tree \n");
@@ -172,11 +173,11 @@ void insertOldIntoPageTree(long pageNumber, void* oldTree, void* newTree)
 void swapOldestPageToLow(void *highTree, void *lowTree)
 {
 	DoubleTree *hTree, *lTree;
-	htree = static_cast<DoubleTree *>(highTree);
-	ltree = static_cast<DoubleTree *>(lowTree);
+	hTree = static_cast<DoubleTree *>(highTree);
+	lTree = static_cast<DoubleTree *>(lowTree);
 	PartialPage oldPage = hTree->oldestPage();
 	lTree->insertOldPage(oldPage);
-	hTree->erase(oldPage->getPageNumber());
+	hTree->removePage(oldPage.getPageNumber());
 }
 
 long locatePageTreePR(long pageNumber, void* tree)
@@ -195,20 +196,20 @@ int locateSegment(long pageNumber, long segment, void *tree)
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
 	pair<bool, PartialPage&> finding = prTree->locatePage(pageNumber);
-	if (finding->second.getBitmap(segment)) {
+	if (finding.second.getBitmap(segment)) {
 		return 1;
 	} else {
 		return 0;
 	}
 }
 
-void markSegmentPresent(long PageNumber, long segment, void *tree)
+void markSegmentPresent(long pageNumber, long segment, void *tree)
 {
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
 	pair<bool, PartialPage&> finding = prTree->locatePage(pageNumber);
-	finding->second.setBitmap(segment);
-	finding->second.setTime(prTree->getUnixTimeChrono());
+	finding.second.setBitmap(segment);
+	finding.second.setTime(prTree->getUnixTimeChrono());
 }
 
 void removeFromPageTree(long pageNumber, void* tree)
@@ -229,8 +230,8 @@ void updateTree(long pageNumber, void *tree)
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
 	pair<bool, PartialPage&> finding = prTree->locatePage(pageNumber);
-	if (finding->first) {
-		finding->second.setTime(prTree->getUnixTimeChrono());
+	if (finding.first) {
+		finding.second.setTime(prTree->getUnixTimeChrono());
 		return;
 	} else {
 		fprintf(stderr, "Tried update time on non existent page\n");
@@ -242,8 +243,8 @@ long removeOldestPage(void *tree)
 {
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
-	long oldPage = prTree->oldestPage();
-	return prTree->removePage(oldPage);
+	long oldPage = (prTree->oldestPage()).getPageNumber();
+	return prTree->removePage(oldPage).second.getPageNumber();
 }
 
 }// end extern "C"		
