@@ -21,7 +21,7 @@ threadhandler.o: threadhandler.c threadhandler.h analysis.h
 	gcc -O2 -o threadhandler.o -c -Wall threadhandler.c
 
 pages.o: pages.cpp 
-	g++ -std=c++0x -O2 -o pages.o -c -Wall pages.cpp
+	g++ -std=c++0x -I /opt/local/include/ -O2 -o pages.o -c -Wall pages.cpp
 
 runtimer.o: runtimer.c threadhandler.h 
 	gcc -O2 -o runtimer.o -c -Wall runtimer.c

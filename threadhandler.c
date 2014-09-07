@@ -225,7 +225,7 @@ static void XMLCALL
 threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 { 
 	int i, overrun;
-	long address, pageNumber, size, resSize, offset;
+	long address, pageNumber, size, resSize, offset, segment;
 	struct ThreadResources *thResources;
 	struct ThreadGlobal *globals;
 	struct ThreadLocal *local;
@@ -253,6 +253,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 				address = strtol(attr[i+1], NULL, 16);
 				pageNumber = address >> BITSHIFT;
 				offset = address ^ (pageNumber << BITSHIFT);
+				segment = offset >> 4;
 				local->anDestination = address;
 				local->anPage = pageNumber;
 				continue;
