@@ -10,9 +10,9 @@
 #include <sys/resource.h>
 #include <curses.h>
 #include <unistd.h>
-#include "pages.h"
 #include "threadhandler.h"
 #include "analysis.h"
+#include "pages.h"
 
 int BARRIER = 1;
 int SUPER = 100000;
@@ -221,7 +221,7 @@ void cleanThreadList(struct ThreadRecord *root)
 
 void usage()
 {
-	printf("USAGE: lru2aysis controlfile\n");
+	printf("USAGE: variload controlfile\n");
 }
 
 static void XMLCALL

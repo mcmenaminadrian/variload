@@ -1,17 +1,17 @@
 default: all
 
-all: lru2analysis 
+all: variload 
 
-debug: debuglru2analysis
+debug: debugvariload
 
 #get rid of junk
 clean:
 	rm -f *.o
 
 # normal build
-lru2analysis: runtimer.o pages.o threadhandler.o \
+variload: runtimer.o pages.o threadhandler.o \
 	analysis.o
-	g++ -std=c++0x -O2 -o lru2aysis -Wall pages.o analysis.o \
+	g++ -std=c++0x -O2 -o variload -Wall pages.o analysis.o \
 		threadhandler.o runtimer.o -lexpat -lpthread -lncurses
 
 analysis.o: analysis.cpp threadhandler.h analysis.h
@@ -27,9 +27,9 @@ runtimer.o: runtimer.c threadhandler.h
 	gcc -O2 -o runtimer.o -c -Wall runtimer.c
 
 # debug build
-debuglru2analysis: druntimer.o dpages.o dthreadhandler.o \
+debugvariload: druntimer.o dpages.o dthreadhandler.o \
 	danalysis.o
-	g++ -g -O0 -o lru2aysis -Wall dpages.o \
+	g++ -g -O0 -o variload -Wall dpages.o \
 		danalysis.o \
 		dthreadhandler.o druntimer.o -lexpat -lpthread -lncurses
 
@@ -40,7 +40,7 @@ dthreadhandler.o: threadhandler.c threadhandler.h analysis.h
 	gcc -g -O0 -o dthreadhandler.o -c -Wall threadhandler.c
 
 dpages.o: pages.cpp
-	g++ -g -O0 -o dpages.o -c -Wall pages.cpp
+	g++ -g -O0 -I /opt/local/include/ -o dpages.o -c -Wall pages.cpp
 
 druntimer.o: runtimer.c threadhandler.h 
 	gcc -g -O0 -o druntimer.o -c -Wall runtimer.c
