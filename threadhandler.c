@@ -183,6 +183,43 @@ notInGlobalTree(long pageNumber, struct ThreadResources *thResources,
 	}
 	incrementCoresInUse(thResources);
 }
+
+static void
+accessMemory(long pageNumber, long segment,
+	struct ThreadResources *thResources)
+{
+	struct ThreadGlobal *globals = thResources->globals;
+	pthread_mutex_lock(&globals->threadGlobalLock);
+	if (locatePageTreePR(pageNumber, globals->lowTree)) {
+		//In low tree
+		if (!locateSegment(pageNumber, segment, globals->lowTree)) {
+		//In low tree, segment not present
+		promoteToHighTree(pageNumber, thResources);
+		pullInSegement(pageNumber, segment, thResources,
+			globals->highTree);
+		} else {
+			//In low tree, segment present
+			promoteToHighTree(pageNumber, thResources);
+		}
+	} else {
+		//Not in low tree
+		if (locatePageTreePR(pageNumber, globals->highTree)) {
+			//In high tree
+			if (!locateSegment(pageNumber, segment,
+				globals->highTree)) {
+				//segment not present
+				pullInSegment(pageNumber, segment, thResources,
+					globals->highTree);
+			} else {
+				//segment present
+				updateHighTree(pageNumber);
+		} else {
+			//not in either tree
+			notInGlobalTree(pageNumber, thResources, offset);
+		}
+	}
+}
+	
 	
 static void XMLCALL
 threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
@@ -232,103 +269,28 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 				}
 			}
 		}
-		//have address - is it already present?
-		pthread_mutex_lock(&globals->threadGlobalLock);
-		if (locatePageTreePR(pageNumber, globals->lowTree)) {
-			//In low tree
-			if (!locateSegment(pageNumber, segment,
-				globals->lowTree)) {
-				//In low tree, segment not present
-				promoteToHighTree(pageNumber, thResources);
-				pullInSegement(pageNumber, segment,
-					thResources, globals->highTree);
-			} else {
-				//In low tree, segment present
-				promoteToHighTree(pageNumber, thResources);
-			}
-		} else {
-			//Not in low tree
-			if (locatePageTreePR(pageNumber, globals->highTree)) {
-				//In high tree
-				if (!locateSegment(pageNumber, segment,
-					globals->highTree)) {
-					//segment not present
-					pullInSegment(pageNumber, segment,
-						thResources,
-						globals->highTree);
-					} else {
-						//segment present
-						updateHighTree(pageNumber);
-			} else {
-				//not in either tree
-				notInGlobalTree(pageNumber, thResources, offset);
-			}
-		}
+		accessMemory(pageNumber, segment, thResources)
 		insertRecord(thResources);
 		if (overrun) {
 			pthread_mutex_lock(&globals->threadGlobalLock);
-			offset = 0;
 			local->anSize = resSize;
 			local->anDestination = (pageNumber + 1) << BITSHIFT;
 			local->anPage = pageNumber + 1;
-			if (locatePageTreePR(pageNumber + 1,
-				globals->lowTree)) {
-				promoteToHighTree(pageNumber + 1, thResources,
-					offset);
-			} else {
-				if (locatePageTreePR(pageNumber + 1,
-					globals->highTree, offset)) {
-					updateHighTree(pageNumber + 1,
-						thResources, offset);
-				} else {
-					notInGlobalTree(pageNumber + 1,
-						thResources, offset);
-				}
-			}
+			accessMemory(pageNumber + 1, 0, thResources)
 			insertRecord(thResources);
 		}
 
 		if (strcmp(name, "modify") == 0) {
 			//do it again
-			pthread_mutex_lock(&globals->threadGlobalLock);
-			if (locatePageTreePR(pageNumber, globals->lowTree)){
-				promoteToHighTree(pageNumber, thResources);
-			} else {
-				if (locatePageTreePR(pageNumber,
-					globals->highTree)) {
-					updateHighTree(pageNumber,
-						thResources, offset);
-				} else {
-					notInGlobalTree(pageNumber,
-						thResources, offset);
-				}
-			}
+			accessMemory(pageNumber, segment, thResources);
 			insertRecord(thResources);
 			if (overrun) {
 				pthread_mutex_lock(&globals->threadGlobalLock);
-				offset = 0;
 				local->anSize = resSize;
 				local->anDestination =
 					(pageNumber + 1) << BITSHIFT;
 				local->anPage = pageNumber + 1;
-				if (locatePageTreePR(pageNumber + 1,
-					globals->lowTree, offset)) {
-					promoteToHighTree(pageNumber + 1,
-						thResources, offset);
-				} else {
-					if (locatePageTreePR(pageNumber + 1,
-						globals->highTree)) {
-							updateHighTree(
-								pageNumber + 1,
-								thResources,
-								offset);
-					} else {
-						notInGlobalTree(
-							pageNumber + 1,
-							thResources,
-							offset);
-					}
-				}
+				accessMemory(pageNumber + 1, 0, thResources);
 				insertRecord(thResources);
 			}
 		}
