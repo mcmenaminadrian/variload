@@ -134,7 +134,7 @@ promoteToHighTree(long pageNumber, struct ThreadResources *thResources)
 {
 	struct ThreadGlobal *globals = thResources->globals;
 	if (countPageTree(globals->highTree) >= globals->maxHighSize) {
-		swapOldestPageToLow();
+		swapOldestPageToLow(thResources);
 	}
 	insertOldIntoPageTree(pageNumber, globals->lowTree,
 		globals->highTree);
@@ -179,7 +179,7 @@ accessMemory(long pageNumber, long segment,
 		if (!locateSegment(pageNumber, segment, globals->lowTree)) {
 		//In low tree, segment not present
 		promoteToHighTree(pageNumber, thResources);
-		pullInSegement(pageNumber, segment, thResources,
+		pullInSegment(pageNumber, segment, thResources,
 			globals->highTree);
 		} else {
 			//In low tree, segment present

@@ -159,7 +159,7 @@ void removePageTree(void* tree)
 	delete prTree;
 }
 
-void insertNewIntoPageTree(long pageNumber, void* tree)
+void insertNewIntoPageTree(long pageNumber, void *tree)
 {
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
@@ -181,11 +181,11 @@ void insertOldIntoPageTree(long pageNumber, void* oldTree, void* newTree)
 	}
 }
 
-void swapOldestPageToLow(void *highTree, void *lowTree)
+void swapOldestPageToLow(struct ThreadResources *thResources)
 {
 	DoubleTree *hTree, *lTree;
-	hTree = static_cast<DoubleTree *>(highTree);
-	lTree = static_cast<DoubleTree *>(lowTree);
+	hTree = static_cast<DoubleTree *>(thResources->globals->highTree);
+	lTree = static_cast<DoubleTree *>(thResources->globals->lowTree);
 	PartialPage oldPage = hTree->oldestPage();
 	lTree->insertOldPage(oldPage);
 	hTree->removePage(oldPage.getPageNumber());

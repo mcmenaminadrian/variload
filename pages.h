@@ -4,13 +4,15 @@
 
 #ifndef __PAGES_H_
 #define __PAGES_H_
-
-
+int locateSegment(long pageNumber, long segment, void *tree);
+void markSegmentPresent(long pageNumber, long segment, void *tree);
+void swapOldestPageToLow(struct ThreadResources *thResources);
+void updateTree(long pageNumber, void *tree);
+void insertNewIntoPageTree(long pageNumber, void *tree);
+void insertOldIntoPageTree(long pageNumber, void *oldTree, void *newTree);
 void* createPageTree(void);
 void removePageTree(void* tree);
-void insertIntoPageTree(void *page, void *tree);
 void* locatePageTreePR(long pageNumber, void* tree);
-void removeFromPageTree(long pageNumber, void* tree);
 int countPageTree(void* tree);
 long removeOldestPage(void* tree);
 #endif
