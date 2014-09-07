@@ -10,6 +10,8 @@
 #define PAGESIZE (1 << BITSHIFT) 
 #define MAXTHREADS 18
 #define BITLENGTH (COREMEM >> 4)
+#define COUNTDOWN 100
+#define TICKFIND 4
 
 struct ThreadLocal;
 
