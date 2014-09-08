@@ -7,7 +7,7 @@
 #define COREMEM 28672
 #define HIGH 0.67
 #define MEMWIDTH 16
-#define PAGESIZE (1 << BITSHIFT) 
+#define PAGESIZE_ (1 << BITSHIFT) 
 #define MAXTHREADS 18
 #define BITLENGTH (COREMEM >> 4)
 #define COUNTDOWN 100

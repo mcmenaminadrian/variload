@@ -293,8 +293,8 @@ int startFirstThread(char* outputprefix)
 		goto failGlobalTree;
 	}
 
-	globalThreadList->maxHighSize = ((COREMEM * CORES)/(PAGESIZE)) * HIGH;
-	globalThreadList->maxLowSize = (COREMEM * CORES)/(PAGESIZE) - 
+	globalThreadList->maxHighSize = ((COREMEM * CORES)/(PAGESIZE_)) * HIGH;
+	globalThreadList->maxLowSize = (COREMEM * CORES)/(PAGESIZE_) - 
 		globalThreadList->maxHighSize;
 
 	firstThreadLocal =
