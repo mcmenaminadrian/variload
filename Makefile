@@ -29,18 +29,18 @@ runtimer.o: runtimer.c threadhandler.h
 # debug build
 debugvariload: druntimer.o dpages.o dthreadhandler.o \
 	danalysis.o
-	g++ -g -O0 -o variload -Wall dpages.o \
+	g++ -g -std=c++0x -O0 -o variload -Wall dpages.o \
 		danalysis.o \
 		dthreadhandler.o druntimer.o -lexpat -lpthread -lncurses
 
 danalysis.o: analysis.cpp threadhandler.h analysis.h
-	g++ -g -O0 -o danalysis.o -c -Wall analysis.cpp
+	g++ -g -std=c++0x -O0 -o danalysis.o -c -Wall analysis.cpp
 
 dthreadhandler.o: threadhandler.c threadhandler.h analysis.h
 	gcc -g -O0 -o dthreadhandler.o -c -Wall threadhandler.c
 
 dpages.o: pages.cpp
-	g++ -g -O0 -I /opt/local/include/ -o dpages.o -c -Wall pages.cpp
+	g++ -g -std=c++0x -O0 -I /opt/local/include/ -o dpages.o -c -Wall pages.cpp
 
 druntimer.o: runtimer.c threadhandler.h 
 	gcc -g -O0 -o druntimer.o -c -Wall runtimer.c
