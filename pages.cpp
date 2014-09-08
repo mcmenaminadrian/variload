@@ -91,7 +91,7 @@ long DoubleTree::getUnixTimeChrono() const
 
 void DoubleTree::insertNewPage(const long pageNumber)
 {
-	PartialPage inPage(pageNumber, PAGESIZE >> 4, getUnixTimeChrono());
+	PartialPage inPage(pageNumber, PAGESIZE_ >> 4, getUnixTimeChrono());
 	pageTree.insert(pair<long, PartialPage&>(pageNumber, inPage));
 }
 
