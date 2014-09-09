@@ -27,13 +27,9 @@ class PartialPage
 		time = t;
 		bitmap = boost::dynamic_bitset<>(bitLength);
 	}
-	PartialPage(PartialPage& pp):pageNumber(pp.pageNumber) {
-		time = pp.time;
-		bitmap = boost::dynamic_bitset<>(pp.bitmap);
-	}
 	PartialPage& operator=(PartialPage& pp);
-	const bool getBitmap(const long sequence) const;
-	const bool setBitmap(const long sequence);
+	const bool getBitmap(const unsigned long sequence) const;
+	const bool setBitmap(const unsigned long sequence);
 	const long getPageNumber() const;
 	void setTime(const long timeIn){time = timeIn;}
 	const long getTime() const {return time;}
@@ -45,7 +41,7 @@ PartialPage& PartialPage::operator=(PartialPage& pp)
 	return retPP;
 }
 
-const bool PartialPage::getBitmap(const long sequence) const
+const bool PartialPage::getBitmap(const unsigned long sequence) const
 {
 	if (sequence > bitmap.size()) {
 		return false;
@@ -53,7 +49,7 @@ const bool PartialPage::getBitmap(const long sequence) const
 	return (bitmap[sequence] == 1);
 }
 
-const bool PartialPage::setBitmap(const long sequence)
+const bool PartialPage::setBitmap(const unsigned long sequence)
 {
 	if (sequence > bitmap.size()) {
 		return false;
@@ -75,10 +71,10 @@ class DoubleTree
 	public:
 	long getUnixTimeChrono() const;
 	void insertNewPage(const long pageNumber);
-	void insertOldPage(PartialPage& oldPage);
+	void insertOldPage(const long pageNumber);
 	const bool offsetPresent(PartialPage& pPage, const long offset) const;
 	pair<bool, PartialPage&> locatePage(const long pageNumber);
-	pair<bool, PartialPage&> removePage(const long pageNumber);
+	pair<bool, long> removePage(const long pageNumber);
 	PartialPage& oldestPage();
 	const long treeSize() const { return pageTree.size();}
 };
@@ -91,16 +87,14 @@ long DoubleTree::getUnixTimeChrono() const
 
 void DoubleTree::insertNewPage(const long pageNumber)
 {
-	PartialPage inPage(pageNumber, PAGESIZE_ >> 4, getUnixTimeChrono());
-	pageTree.insert(pair<long, PartialPage&>(pageNumber, inPage));
+	pair<long, PartialPage> goIn(pageNumber,PartialPage(pageNumber,
+		PAGESIZE_ >> 4, getUnixTimeChrono())); 
+	pageTree.insert(goIn);
 }
 
-void DoubleTree::insertOldPage(PartialPage& oldPage)
+void DoubleTree::insertOldPage(const long pageNumber)
 {
-	long insertTime = getUnixTimeChrono();
-	oldPage.setTime(insertTime);
-	pageTree.insert(pair<long, PartialPage&>(oldPage.getPageNumber(),
-		oldPage));
+	insertNewPage(pageNumber);
 }
 
 pair<bool, PartialPage&> DoubleTree::locatePage(const long pageNumber)
@@ -116,19 +110,17 @@ pair<bool, PartialPage&> DoubleTree::locatePage(const long pageNumber)
 	}
 }
 
-pair<bool, PartialPage&> DoubleTree::removePage(const long pageNumber)
+pair<bool, long> DoubleTree::removePage(const long pageNumber)
 {
 	map<long, PartialPage>::iterator itPage = pageTree.find(pageNumber);
 	if (itPage == pageTree.end())
 	{
 		cout << "ERROR: page does not exist in tree: " << pageNumber;
 		cout << "\n";
-		PartialPage pp(0, 0, 0);
-		return pair<bool, PartialPage&>(false, pp);
+		return pair<bool, long>(false, -1);
 	}
-	PartialPage foundPage = itPage->second;
 	pageTree.erase(itPage);
-	return pair<bool, PartialPage&>(true, foundPage);
+	return pair<bool, long>(true, pageNumber);
 }
 
 PartialPage& DoubleTree::oldestPage()
@@ -172,12 +164,12 @@ void insertOldIntoPageTree(long pageNumber, void* oldTree, void* newTree)
 	DoubleTree *destTree, *srcTree;
 	destTree = static_cast<DoubleTree *>(newTree);
 	srcTree = static_cast<DoubleTree *>(oldTree);
-	pair<bool, PartialPage&> result = srcTree->removePage(pageNumber);
+	pair<bool, long> result = srcTree->removePage(pageNumber);
 	if (result.first == true) {
 		destTree->insertOldPage(result.second);
 		return;
 	} else {
-	 fprintf(stderr, "Could not swap page to new tree \n");
+		fprintf(stderr, "Could not swap page to new tree \n");
 	}
 }
 
@@ -187,7 +179,7 @@ void swapOldestPageToLow(struct ThreadResources *thResources)
 	hTree = static_cast<DoubleTree *>(thResources->globals->highTree);
 	lTree = static_cast<DoubleTree *>(thResources->globals->lowTree);
 	PartialPage oldPage = hTree->oldestPage();
-	lTree->insertOldPage(oldPage);
+	lTree->insertOldPage(oldPage.getPageNumber());
 	hTree->removePage(oldPage.getPageNumber());
 }
 
@@ -255,7 +247,7 @@ long removeOldestPage(void *tree)
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
 	long oldPage = (prTree->oldestPage()).getPageNumber();
-	return prTree->removePage(oldPage).second.getPageNumber();
+	return prTree->removePage(oldPage).second;
 }
 
 }// end extern "C"		
