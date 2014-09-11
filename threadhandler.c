@@ -173,7 +173,6 @@ accessMemory(long pageNumber, long segment,
 	struct ThreadResources *thResources)
 {
 	struct ThreadGlobal *globals = thResources->globals;
-	pthread_mutex_lock(&globals->threadGlobalLock);
 	if (locatePageTreePR(pageNumber, globals->lowTree)) {
 		//In low tree
 		if (!locateSegment(pageNumber, segment, globals->lowTree)) {
@@ -255,6 +254,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 				}
 			}
 		}
+		pthread_mutex_lock(&globals->threadGlobalLock);
 		accessMemory(pageNumber, segment, thResources);
 		insertRecord(thResources);
 		if (overrun) {
@@ -268,6 +268,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 
 		if (strcmp(name, "modify") == 0) {
 			//do it again
+			pthread_mutex_lock(&globals->threadGlobalLock);
 			accessMemory(pageNumber, segment, thResources);
 			insertRecord(thResources);
 			if (overrun) {
