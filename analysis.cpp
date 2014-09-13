@@ -80,7 +80,6 @@ void insertRecord(struct ThreadResources* thResources)
 		(globals->activePages);
 
 	map<unsigned long, struct ActivePage*>::iterator it;
-	pthread_mutex_lock(&globals->threadGlobalLock);
 	it = activePages->find(local->anPage);
 	if (it == activePages->end()) {
 		struct ActivePage* nextPage = new ActivePage();
@@ -106,7 +105,6 @@ void insertRecord(struct ThreadResources* thResources)
 			pair<unsigned long, unsigned int>
 			(local->anDestination, local->anSize)));
 	}
-	pthread_mutex_unlock(&globals->threadGlobalLock);
 }
 
 //called with lock on
@@ -119,7 +117,7 @@ void doneWithRecord(long page, struct ThreadResources* thResources)
 		(globals->activePages);
 	it = activePages->find(page);
 	if (it == activePages->end()) {
-		cout << "*******" << page << " :FIX ME: NO PAGE!!\n";
+		cout << page << " :FIX ME: NO PAGE!!\n";
 		return;
 		//failed
 	}

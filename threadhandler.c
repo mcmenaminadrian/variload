@@ -119,6 +119,7 @@ static void pullInSegment(long pageNumber, long segment,
 	int countDown = COUNTDOWN;
 	while (countDown) {
 		if (locateSegment(pageNumber, segment, tree)) {
+			insertRecord(thResources);
 			pthread_mutex_unlock(&globals->threadGlobalLock);
 			return;
 		}
@@ -137,6 +138,7 @@ static void pullInSegment(long pageNumber, long segment,
 		insertNewIntoPageTree(pageNumber, tree);
 	}
 	markSegmentPresent(pageNumber, segment, tree);
+	insertRecord(thResources);
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 }
 
@@ -185,6 +187,7 @@ accessMemory(long pageNumber, long segment,
 		} else {
 			//In low tree, segment present
 			promoteToHighTree(pageNumber, thResources);
+			insertRecord(thResources);
 			pthread_mutex_unlock(&globals->threadGlobalLock);
 			countdownTicks(TICKFIND, thResources);
 		}
@@ -201,6 +204,7 @@ accessMemory(long pageNumber, long segment,
 			} else {
 				//segment present
 				updateHighTree(pageNumber, thResources);
+				insertRecord(thResources);
 				pthread_mutex_unlock(&globals->threadGlobalLock);
 				countdownTicks(TICKFIND, thResources);
 			}
@@ -263,29 +267,25 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 		}
 		pthread_mutex_lock(&globals->threadGlobalLock);
 		accessMemory(pageNumber, segment, thResources);
-		insertRecord(thResources);
 		if (overrun) {
-			pthread_mutex_lock(&globals->threadGlobalLock);
 			local->anSize = resSize;
 			local->anDestination = (pageNumber + 1) << BITSHIFT;
 			local->anPage = pageNumber + 1;
+			pthread_mutex_lock(&globals->threadGlobalLock);
 			accessMemory(pageNumber + 1, 0, thResources);
-			insertRecord(thResources);
 		}
 
 		if (strcmp(name, "modify") == 0) {
 			//do it again
 			pthread_mutex_lock(&globals->threadGlobalLock);
 			accessMemory(pageNumber, segment, thResources);
-			insertRecord(thResources);
 			if (overrun) {
-				pthread_mutex_lock(&globals->threadGlobalLock);
 				local->anSize = resSize;
 				local->anDestination =
 					(pageNumber + 1) << BITSHIFT;
 				local->anPage = pageNumber + 1;
+				pthread_mutex_lock(&globals->threadGlobalLock);
 				accessMemory(pageNumber + 1, 0, thResources);
-				insertRecord(thResources);
 			}
 		}
 		local->instructionCount++;

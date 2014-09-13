@@ -15,13 +15,6 @@
 
 struct ThreadLocal;
 
-
-struct PageToKill
-{
-	long pageNumbers[MAXTHREADS];
-	long instructionCounts[MAXTHREADS];
-};
-
 struct ThreadArray
 {
 	int threadNumber;
@@ -59,12 +52,12 @@ struct ThreadGlobal
 {
 	long totalTicks;
 	struct ThreadRecord* head;
-	void* highTree;
-	void* lowTree;
+	void *highTree;
+	void *lowTree;
 	int maxHighSize;
 	int maxLowSize;
 	struct ThreadArray *threads;
-	void* activePages;
+	void *activePages;
 	const int totalCores;
 	const int usableMemoryPerCore;
 	const int waitingTicks;
