@@ -121,7 +121,7 @@ static void pullInSegment(long pageNumber, long segment,
 		int err = pthread_mutex_trylock(&globals->threadGlobalLock);
 		if (err != 0) {
 			pthread_mutex_lock(&globals->threadGlobalLock);
-		}§
+		}
 		if (locateSegment(pageNumber, segment, tree)) {
 			pthread_mutex_unlock(&globals->threadGlobalLock);
 			return;
