@@ -87,7 +87,7 @@ long DoubleTree::getUnixTimeChrono() const
 
 void DoubleTree::insertNewPage(const long pageNumber)
 {
-	pair<long, PartialPage> goIn(pageNumber,PartialPage(pageNumber,
+	pair<long, PartialPage> goIn(pageNumber, PartialPage(pageNumber,
 		PAGESIZE_ >> 4, getUnixTimeChrono())); 
 	pageTree.insert(goIn);
 }
@@ -199,7 +199,7 @@ int locateSegment(long pageNumber, long segment, void *tree)
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
 	pair<bool, PartialPage&> finding = prTree->locatePage(pageNumber);
-	if (finding.second.getBitmap(segment)) {
+	if (finding.first && finding.second.getBitmap(segment)) {
 		return 1;
 	} else {
 		return 0;

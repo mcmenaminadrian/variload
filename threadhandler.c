@@ -128,6 +128,14 @@ static void pullInSegment(long pageNumber, long segment,
 		pthread_mutex_lock(&globals->threadGlobalLock);
 	}
 	thResources->local->faultCount++;
+	if (!locatePageTreePR(pageNumber, tree)) {
+		if (countPageTree(globals->lowTree) >= globals->maxLowSize)
+		{
+			long killPage = removeOldestPage(globals->lowTree);
+			doneWithRecord(killPage, thResources);
+		}
+		insertNewIntoPageTree(pageNumber, tree);
+	}
 	markSegmentPresent(pageNumber, segment, tree);
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 }
@@ -156,12 +164,6 @@ notInGlobalTree(long pageNumber, struct ThreadResources *thResources,
 {
 	struct ThreadGlobal *globals = thResources->globals;
 	decrementCoresInUse();
-	if (countPageTree(globals->lowTree)>= globals->maxLowSize)
-	{
-		long killPage = removeOldestPage(globals->lowTree);
-		doneWithRecord(killPage, thResources);
-	}
-	insertNewIntoPageTree(pageNumber, globals->lowTree);
 	pullInSegment(pageNumber, offset, thResources, globals->lowTree); 
 	countdownTicks(TICKFIND, thResources);
 	incrementCoresInUse(thResources);
