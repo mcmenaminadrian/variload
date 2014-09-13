@@ -117,16 +117,23 @@ static void pullInSegment(long pageNumber, long segment,
 {
 	struct ThreadGlobal *globals = thResources->globals;
 	int countDown = COUNTDOWN;
-	pthread_mutex_unlock(&globals->threadGlobalLock);
 	while (countDown) {
+		int err = pthread_mutex_trylock(&globals->threadGlobalLock);
+		if (err != 0) {
+			pthread_mutex_lock(&globals->threadGlobalLock);
+		}§
 		if (locateSegment(pageNumber, segment, tree)) {
+			pthread_mutex_unlock(&globals->threadGlobalLock);
 			return;
 		}
+		pthread_mutex_unlock(&globals->threadGlobalLock);
 		updateTickCount(thResources);
 		countDown--;
 	}
+	pthread_mutex_lock(&globals->threadGlobalLock);
+	thResources->local->faultCount++;
 	markSegmentPresent(pageNumber, segment, tree);
-	countdownTicks(TICKFIND, thResources);
+	pthread_mutex_unlock(&globals->threadGlobalLock);
 }
 
 static void
@@ -138,8 +145,6 @@ promoteToHighTree(long pageNumber, struct ThreadResources *thResources)
 	}
 	insertOldIntoPageTree(pageNumber, globals->lowTree,
 		globals->highTree);
-	pthread_mutex_unlock(&globals->threadGlobalLock);
-	countdownTicks(TICKFIND, thResources);
 }
 
 static void
@@ -147,8 +152,6 @@ updateHighTree(long pageNumber, struct ThreadResources *thResources)
 {
 	struct ThreadGlobal *globals = thResources->globals;
 	updateTree(pageNumber, globals->highTree);
-	pthread_mutex_unlock(&globals->threadGlobalLock);
-	countdownTicks(TICKFIND, thResources);
 }
 
 static void 
@@ -177,12 +180,15 @@ accessMemory(long pageNumber, long segment,
 		//In low tree
 		if (!locateSegment(pageNumber, segment, globals->lowTree)) {
 		//In low tree, segment not present
-		promoteToHighTree(pageNumber, thResources);
-		pullInSegment(pageNumber, segment, thResources,
-			globals->highTree);
+			promoteToHighTree(pageNumber, thResources);
+			pullInSegment(pageNumber, segment, thResources,
+				globals->highTree);
+			countdownTicks(TICKFIND, thResources);
 		} else {
 			//In low tree, segment present
 			promoteToHighTree(pageNumber, thResources);
+			pthread_mutex_unlock(&globals->threadGlobalLock);
+			countdownTicks(TICKFIND, thResources);
 		}
 	} else {
 		//Not in low tree
@@ -193,9 +199,12 @@ accessMemory(long pageNumber, long segment,
 				//segment not present
 				pullInSegment(pageNumber, segment, thResources,
 					globals->highTree);
+				countdownTicks(TICKFIND, thResources);
 			} else {
 				//segment present
 				updateHighTree(pageNumber, thResources);
+				pthread_mutex_unlock(&globals->threadGlobalLock);
+				countdownTicks(TICKFIND, thResources);
 			}
 		} else {
 			//not in either tree
