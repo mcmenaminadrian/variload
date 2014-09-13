@@ -118,10 +118,6 @@ static void pullInSegment(long pageNumber, long segment,
 	struct ThreadGlobal *globals = thResources->globals;
 	int countDown = COUNTDOWN;
 	while (countDown) {
-		int err = pthread_mutex_trylock(&globals->threadGlobalLock);
-		if (err != 0) {
-			pthread_mutex_lock(&globals->threadGlobalLock);
-		}
 		if (locateSegment(pageNumber, segment, tree)) {
 			pthread_mutex_unlock(&globals->threadGlobalLock);
 			return;
@@ -129,8 +125,8 @@ static void pullInSegment(long pageNumber, long segment,
 		pthread_mutex_unlock(&globals->threadGlobalLock);
 		updateTickCount(thResources);
 		countDown--;
+		pthread_mutex_lock(&globals->threadGlobalLock);
 	}
-	pthread_mutex_lock(&globals->threadGlobalLock);
 	thResources->local->faultCount++;
 	markSegmentPresent(pageNumber, segment, tree);
 	pthread_mutex_unlock(&globals->threadGlobalLock);
