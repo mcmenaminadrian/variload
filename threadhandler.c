@@ -113,12 +113,15 @@ static void countdownTicks(int tickNo, struct ThreadResources *thResources)
 }
 
 static void pullInSegment(long pageNumber, long segment,
-	struct ThreadResources *thResources, void *tree)
+	struct ThreadResources *thResources)
 {
 	struct ThreadGlobal *globals = thResources->globals;
+	void *lowTree = globals->lowTree;
+	void *highTree = globals->highTree;
 	int countDown = COUNTDOWN;
 	while (countDown) {
-		if (locateSegment(pageNumber, segment, tree)) {
+		if (locateSegment(pageNumber, segment, lowTree) ||
+			locateSegment(pageNumber, segment, highTree)) {
 			insertRecord(thResources);
 			pthread_mutex_unlock(&globals->threadGlobalLock);
 			return;
@@ -129,15 +132,22 @@ static void pullInSegment(long pageNumber, long segment,
 		pthread_mutex_lock(&globals->threadGlobalLock);
 	}
 	thResources->local->faultCount++;
-	if (!locatePageTreePR(pageNumber, tree)) {
-		if (countPageTree(globals->lowTree) >= globals->maxLowSize)
-		{
-			long killPage = removeOldestPage(globals->lowTree);
-			doneWithRecord(killPage, thResources);
+	if (locatePageTreePR(pageNumber, highTree)) {
+		markSegmentPresent(pageNumber segment, highTree);
+	} else {
+		if (!locatePageTreePR(pageNumber, lowTree)) {
+			if (countPageTree(globals->lowTree) >= globals->maxLowSize)
+			{
+				long killPage = removeOldestPage(globals->lowTree);
+				doneWithRecord(killPage, thResources);
+			}
+			insertNewIntoPageTree(pageNumber, lowTree);
+			markSegmentPresent(pageNumber, segment, lowTree);
+		} else {
+			promoteToHighTree(pageNumber, thResources);
+			markSegmentPresent(pageNumber, segment, highTree);
 		}
-		insertNewIntoPageTree(pageNumber, tree);
 	}
-	markSegmentPresent(pageNumber, segment, tree);
 	insertRecord(thResources);
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 }
