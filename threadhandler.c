@@ -112,6 +112,17 @@ static void countdownTicks(int tickNo, struct ThreadResources *thResources)
 	}
 }
 
+static void
+promoteToHighTree(long pageNumber, struct ThreadResources *thResources)
+{
+	struct ThreadGlobal *globals = thResources->globals;
+	if (countPageTree(globals->highTree) >= globals->maxHighSize) {
+		swapOldestPageToLow(thResources);
+	}
+	insertOldIntoPageTree(pageNumber, globals->lowTree,
+		globals->highTree);
+}
+
 static void pullInSegment(long pageNumber, long segment,
 	struct ThreadResources *thResources)
 {
@@ -133,7 +144,7 @@ static void pullInSegment(long pageNumber, long segment,
 	}
 	thResources->local->faultCount++;
 	if (locatePageTreePR(pageNumber, highTree)) {
-		markSegmentPresent(pageNumber segment, highTree);
+		markSegmentPresent(pageNumber, segment, highTree);
 	} else {
 		if (!locatePageTreePR(pageNumber, lowTree)) {
 			if (countPageTree(globals->lowTree) >= globals->maxLowSize)
@@ -153,17 +164,6 @@ static void pullInSegment(long pageNumber, long segment,
 }
 
 static void
-promoteToHighTree(long pageNumber, struct ThreadResources *thResources)
-{
-	struct ThreadGlobal *globals = thResources->globals;
-	if (countPageTree(globals->highTree) >= globals->maxHighSize) {
-		swapOldestPageToLow(thResources);
-	}
-	insertOldIntoPageTree(pageNumber, globals->lowTree,
-		globals->highTree);
-}
-
-static void
 updateHighTree(long pageNumber, struct ThreadResources *thResources)
 {
 	struct ThreadGlobal *globals = thResources->globals;
@@ -174,9 +174,8 @@ static void
 notInGlobalTree(long pageNumber, struct ThreadResources *thResources,
 	long offset)
 {
-	struct ThreadGlobal *globals = thResources->globals;
 	decrementCoresInUse();
-	pullInSegment(pageNumber, offset, thResources, globals->lowTree); 
+	pullInSegment(pageNumber, offset, thResources); 
 	countdownTicks(TICKFIND, thResources);
 	incrementCoresInUse(thResources);
 }
@@ -191,8 +190,7 @@ accessMemory(long pageNumber, long segment,
 		if (!locateSegment(pageNumber, segment, globals->lowTree)) {
 		//In low tree, segment not present
 			promoteToHighTree(pageNumber, thResources);
-			pullInSegment(pageNumber, segment, thResources,
-				globals->highTree);
+			pullInSegment(pageNumber, segment, thResources);
 			countdownTicks(TICKFIND, thResources);
 		} else {
 			//In low tree, segment present
@@ -208,8 +206,7 @@ accessMemory(long pageNumber, long segment,
 			if (!locateSegment(pageNumber, segment,
 				globals->highTree)) {
 				//segment not present
-				pullInSegment(pageNumber, segment, thResources,
-					globals->highTree);
+				pullInSegment(pageNumber, segment, thResources);
 				countdownTicks(TICKFIND, thResources);
 			} else {
 				//segment present

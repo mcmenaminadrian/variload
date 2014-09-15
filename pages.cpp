@@ -211,6 +211,10 @@ void markSegmentPresent(long pageNumber, long segment, void *tree)
 	DoubleTree *prTree;
 	prTree = static_cast<DoubleTree *>(tree);
 	pair<bool, PartialPage&> finding = prTree->locatePage(pageNumber);
+	if (!finding.first) {
+		cerr << "Error - markSegmentPresent " << pageNumber << "\n";
+		return;
+	} 
 	finding.second.setBitmap(segment);
 	finding.second.setTime(prTree->getUnixTimeChrono());
 }
