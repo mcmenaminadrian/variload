@@ -124,7 +124,7 @@ promoteToHighTree(long pageNumber, struct ThreadResources *thResources)
 }
 
 static void pullInSegment(long pageNumber, long segment,
-	struct ThreadResources *thResources)
+	struct ThreadResources *thResources, int overmark)
 {
 	struct ThreadGlobal *globals = thResources->globals;
 	void *lowTree = globals->lowTree;
@@ -134,6 +134,7 @@ static void pullInSegment(long pageNumber, long segment,
 		if (locateSegment(pageNumber, segment, lowTree) ||
 			locateSegment(pageNumber, segment, highTree)) {
 			insertRecord(thResources);
+			overmark = -1;
 			pthread_mutex_unlock(&globals->threadGlobalLock);
 			return;
 		}
@@ -147,9 +148,11 @@ static void pullInSegment(long pageNumber, long segment,
 		markSegmentPresent(pageNumber, segment, highTree);
 	} else {
 		if (!locatePageTreePR(pageNumber, lowTree)) {
-			if (countPageTree(globals->lowTree) >= globals->maxLowSize)
+			if (countPageTree(globals->lowTree) >= 
+				globals->maxLowSize)
 			{
-				long killPage = removeOldestPage(globals->lowTree);
+				long killPage = 
+					removeOldestPage(globals->lowTree);
 				doneWithRecord(killPage, thResources);
 			}
 			insertNewIntoPageTree(pageNumber, lowTree);
@@ -159,8 +162,16 @@ static void pullInSegment(long pageNumber, long segment,
 			markSegmentPresent(pageNumber, segment, highTree);
 		}
 	}
+	if (overmark == 1) {
+		overmark = 0;
+		pullInSegment(pageNumber, segment + 1, thResources, overmark);
+		if (overmark < 0) {
+			return;
+		}	
+	}
 	insertRecord(thResources);
 	pthread_mutex_unlock(&globals->threadGlobalLock);
+	overmark = -1;
 }
 
 static void
@@ -172,29 +183,39 @@ updateHighTree(long pageNumber, struct ThreadResources *thResources)
 
 static void 
 notInGlobalTree(long pageNumber, struct ThreadResources *thResources,
-	long offset)
+	long offset, int overmark)
 {
 	decrementCoresInUse();
-	pullInSegment(pageNumber, offset, thResources); 
+	pullInSegment(pageNumber, offset, thResources, overmark); 
 	countdownTicks(TICKFIND, thResources);
 	incrementCoresInUse(thResources);
 }
 
 static void
 accessMemory(long pageNumber, long segment,
-	struct ThreadResources *thResources)
+	struct ThreadResources *thResources, int overmark)
 {
 	struct ThreadGlobal *globals = thResources->globals;
 	if (locatePageTreePR(pageNumber, globals->lowTree)) {
 		//In low tree
-		if (!locateSegment(pageNumber, segment, globals->lowTree)) {
-		//In low tree, segment not present
+		if (!locateSegment(pageNumber, segment, globals->lowTree))
+		{
+			//In low tree, segment not present
 			promoteToHighTree(pageNumber, thResources);
-			pullInSegment(pageNumber, segment, thResources);
+			pullInSegment(pageNumber, segment, thResources,
+				overmark);
 			countdownTicks(TICKFIND, thResources);
 		} else {
 			//In low tree, segment present
 			promoteToHighTree(pageNumber, thResources);
+			if (overmark) {
+				overmark = 0;
+				accessMemory(pageNumber, segment + 1, 
+					thResources, overmark);
+				if (overmark < 0) {
+					return;
+				}
+			} 
 			insertRecord(thResources);
 			pthread_mutex_unlock(&globals->threadGlobalLock);
 			countdownTicks(TICKFIND, thResources);
@@ -206,18 +227,28 @@ accessMemory(long pageNumber, long segment,
 			if (!locateSegment(pageNumber, segment,
 				globals->highTree)) {
 				//segment not present
-				pullInSegment(pageNumber, segment, thResources);
+				pullInSegment(pageNumber, segment, thResources,
+					overmark);
 				countdownTicks(TICKFIND, thResources);
 			} else {
 				//segment present
 				updateHighTree(pageNumber, thResources);
+				if (overmark) {
+					overmark = 0;
+					accessMemory(pageNumber, segment + 1,
+						thResources, overmark);
+					if (overmark < 0) {
+						return;
+					}
+				}
 				insertRecord(thResources);
 				pthread_mutex_unlock(&globals->threadGlobalLock);
 				countdownTicks(TICKFIND, thResources);
 			}
 		} else {
 			//not in either tree
-			notInGlobalTree(pageNumber, thResources, segment);
+			notInGlobalTree(pageNumber, thResources, segment,
+				overmark);
 		}
 	}
 }
@@ -235,6 +266,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 	globals = thResources->globals;
 	local = thResources->local;
 	overrun = 0;
+	int overmark = 0;
 	if (strcmp(name, "instruction") == 0 || strcmp(name, "load") == 0 ||
 		strcmp(name, "store") == 0 || strcmp(name, "modify") == 0) {
 		for (i = 0; attr[i]; i += 2) {
@@ -272,27 +304,32 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 				}
 			}
 		}
+		if ((offset + size - 1) >> 4 != segment) {
+			overmark = 1;
+		} else {
+			overmark = 0;
+		}
 		pthread_mutex_lock(&globals->threadGlobalLock);
-		accessMemory(pageNumber, segment, thResources);
+		accessMemory(pageNumber, segment, thResources, overmark);
 		if (overrun) {
 			local->anSize = resSize;
 			local->anDestination = (pageNumber + 1) << BITSHIFT;
 			local->anPage = pageNumber + 1;
 			pthread_mutex_lock(&globals->threadGlobalLock);
-			accessMemory(pageNumber + 1, 0, thResources);
+			accessMemory(pageNumber + 1, 0, thResources, 0);
 		}
 
 		if (strcmp(name, "modify") == 0) {
 			//do it again
 			pthread_mutex_lock(&globals->threadGlobalLock);
-			accessMemory(pageNumber, segment, thResources);
+			accessMemory(pageNumber, segment, thResources, 0);
 			if (overrun) {
 				local->anSize = resSize;
 				local->anDestination =
 					(pageNumber + 1) << BITSHIFT;
 				local->anPage = pageNumber + 1;
 				pthread_mutex_lock(&globals->threadGlobalLock);
-				accessMemory(pageNumber + 1, 0, thResources);
+				accessMemory(pageNumber + 1, 0, thResources, 0);
 			}
 		}
 		local->instructionCount++;
