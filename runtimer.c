@@ -270,7 +270,7 @@ void updateTickCount(struct ThreadResources* tRes)
 	}
 }			
 
-int startFirstThread(char* outputprefix)
+int startFirstThread(char* outputprefix, char *outFilename)
 {
 	int errL, errG;
 	struct ThreadLocal *firstThreadLocal;
@@ -344,7 +344,7 @@ int startFirstThread(char* outputprefix)
 	threads->threadNumber = 0;
 	threads->nextThread = NULL;
 	globalThreadList->threads = threads;
-	createRecordsTree(firstThreadResources);
+	createRecordsTree(firstThreadResources, outFilename);
 	pthread_create(&dataThread, NULL, writeDataThread, (void*)firstThreadResources);
 	pthread_create(&threads->aPThread, NULL, startThreadHandler,
 		(void *)firstThreadResources);
@@ -443,7 +443,7 @@ int main(int argc, char* argv[])
 
 	XML_ParserFree(p_ctrl);
 	fclose(inXML);
-	if (startFirstThread(outputprefix) < 0) {
+	if (startFirstThread(outputprefix, fileOut) < 0) {
 		printf("ERROR: thread parsing failed.\n");
 		exit(-1);
 	}

@@ -41,9 +41,9 @@ void writeIntToFile(ofstream& inFile, unsigned int value)
 	inFile << stringy.rdbuf();
 }
 
-ofstream& openXMLAnalysisFile()
+ofstream& openXMLAnalysisFile(char *outFilename)
 {
-	xmlAnalysisFile.open("lru2analysis.xml");
+	xmlAnalysisFile.open(outFilename);
 
 	xmlAnalysisFile << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 	xmlAnalysisFile << "<!DOCTYPE pageanalysis [\n";
@@ -156,11 +156,11 @@ void doneWithRecord(long page, struct ThreadResources* thResources)
 	activePages->erase(it);
 }
 
-void createRecordsTree(struct ThreadResources* thResources)
+void createRecordsTree(struct ThreadResources* thResources, char *outFilename)
 {
 	thResources->globals->activePages = 
 		(new map<unsigned long, struct ActivePage*>());
-	openXMLAnalysisFile();
+	openXMLAnalysisFile(outFilename);
 }
 
 void removeRecordsTree(struct ThreadResources* thResources)
