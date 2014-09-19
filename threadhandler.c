@@ -257,16 +257,12 @@ accessMemory(long pageNumber, long segment,
 static void XMLCALL
 threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 { 
-	int i, overrun;
-	long address, pageNumber, size, resSize, offset, segment;
-	struct ThreadResources *thResources;
-	struct ThreadGlobal *globals;
-	struct ThreadLocal *local;
-	thResources = (struct ThreadResources *)data;
-	globals = thResources->globals;
-	local = thResources->local;
-	overrun = 0;
-	int overmark = 0;
+	int i = 0, overrun = 0, overmark = 0;
+	long address = 0, pageNumber = 0, size = 0, resSize =  0, offset = 0;
+	long segment = 0;
+	struct ThreadResources *thResources = (struct ThreadResources *)data;
+	struct ThreadGlobal* globals = thResources->globals;
+	struct ThreadLocal *local = thResources->local;
 	if (strcmp(name, "instruction") == 0 || strcmp(name, "load") == 0 ||
 		strcmp(name, "store") == 0 || strcmp(name, "modify") == 0) {
 		for (i = 0; attr[i]; i += 2) {
