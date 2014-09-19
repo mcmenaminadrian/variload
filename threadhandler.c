@@ -234,7 +234,6 @@ accessMemory(long pageNumber, long segment,
 				overmark = 0;
 				accessMemory(pageNumber, segment + 1, 
 					thResources, overmark);
-				}
 			} 
 			insertRecord(thResources);
 			pthread_mutex_unlock(&globals->threadGlobalLock);
@@ -257,7 +256,6 @@ accessMemory(long pageNumber, long segment,
 					overmark = 0;
 					accessMemory(pageNumber, segment + 1,
 						thResources, overmark);
-					}
 				}
 				insertRecord(thResources);
 				pthread_mutex_unlock(&globals->threadGlobalLock);
@@ -289,15 +287,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 			} else {
 				if (strcmp(name, "load") == 0) {
 					local->anType = 'l';
-				} else t push origin mastergit 
-
-
-
-
-
-
-
-{
+				} else { 
 					if (strcmp(name, "store") == 0) {
 						local->anType = 's';
 					} else {
