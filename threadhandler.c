@@ -130,22 +130,44 @@ static void pullInSegment(long pageNumber, long segment,
 	void *lowTree = globals->lowTree;
 	void *highTree = globals->highTree;
 	int countDown = COUNTDOWN;
-	while (countDown) {
-		if (locateSegment(pageNumber, segment, lowTree) ||
-			locateSegment(pageNumber, segment, highTree)) {
-			insertRecord(thResources);
-			overmark = -1;
-			pthread_mutex_unlock(&globals->threadGlobalLock);
-			return;
+	if (overmark) {
+		countDown= countDown * 2;
+		while (countDown) {
+			if ((locateSegment(pageNumber, segment, lowTree) ||
+				locateSegment(pageNumber, segment, highTree)) &&
+				(locateSegment(pageNumber, segment + 1,
+					lowTree)|| locateSegment(pageNumber,
+					segment + 1, highTree))) {
+				insertRecord(thResources);
+				pthread_mutex_unlock(
+					&globals->threadGlobalLock);
+				return;
+			}
 		}
 		pthread_mutex_unlock(&globals->threadGlobalLock);
 		updateTickCount(thResources);
 		countDown--;
-		pthread_mutex_lock(&globals->threadGlobalLock);
+	}
+	else {
+		while (countDown) {
+			if (locateSegment(pageNumber, segment, lowTree) ||
+				locateSegment(pageNumber, segment, highTree)) {
+				insertRecord(thResources);
+				pthread_mutex_unlock(&globals->threadGlobalLock);
+				return;
+			}
+			pthread_mutex_unlock(&globals->threadGlobalLock);
+			updateTickCount(thResources);
+			countDown--;
+			pthread_mutex_lock(&globals->threadGlobalLock);
+		}
 	}
 	thResources->local->faultCount++;
 	if (locatePageTreePR(pageNumber, highTree)) {
 		markSegmentPresent(pageNumber, segment, highTree);
+		if (overmark) {
+			markSegmentPresent(pageNumber, segment + 1, highTree);
+		}
 	} else {
 		if (!locatePageTreePR(pageNumber, lowTree)) {
 			if (countPageTree(globals->lowTree) >= 
@@ -157,21 +179,21 @@ static void pullInSegment(long pageNumber, long segment,
 			}
 			insertNewIntoPageTree(pageNumber, lowTree);
 			markSegmentPresent(pageNumber, segment, lowTree);
+			if (overmark) {
+				markSegmentPresent(pageNumber, segment + 1,
+					lowTree);
+			}
 		} else {
 			promoteToHighTree(pageNumber, thResources);
 			markSegmentPresent(pageNumber, segment, highTree);
+			if (overmark) {
+				markSegmentPresent(pageNumber, segment + 1,
+					highTree);
+			}
 		}
-	}
-	if (overmark == 1) {
-		overmark = 0;
-		pullInSegment(pageNumber, segment + 1, thResources, overmark);
-		if (overmark < 0) {
-			return;
-		}	
 	}
 	insertRecord(thResources);
 	pthread_mutex_unlock(&globals->threadGlobalLock);
-	overmark = -1;
 }
 
 static void
@@ -212,8 +234,6 @@ accessMemory(long pageNumber, long segment,
 				overmark = 0;
 				accessMemory(pageNumber, segment + 1, 
 					thResources, overmark);
-				if (overmark < 0) {
-					return;
 				}
 			} 
 			insertRecord(thResources);
@@ -237,8 +257,6 @@ accessMemory(long pageNumber, long segment,
 					overmark = 0;
 					accessMemory(pageNumber, segment + 1,
 						thResources, overmark);
-					if (overmark < 0) {
-						return;
 					}
 				}
 				insertRecord(thResources);
@@ -271,7 +289,15 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 			} else {
 				if (strcmp(name, "load") == 0) {
 					local->anType = 'l';
-				} else {
+				} else t push origin mastergit 
+
+
+
+
+
+
+
+{
 					if (strcmp(name, "store") == 0) {
 						local->anType = 's';
 					} else {
