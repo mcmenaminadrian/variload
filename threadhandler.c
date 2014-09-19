@@ -147,6 +147,7 @@ static void pullInSegment(long pageNumber, long segment,
 		pthread_mutex_unlock(&globals->threadGlobalLock);
 		updateTickCount(thResources);
 		countDown--;
+		pthread_mutex_lock(&globals->threadGlobalLock);
 	}
 	else {
 		while (countDown) {
