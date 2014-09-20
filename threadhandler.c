@@ -131,7 +131,7 @@ static void pullInSegment(long pageNumber, long segment,
 	void *highTree = globals->highTree;
 	int countDown = COUNTDOWN;
 	if (overmark) {
-		countDown= countDown * 2;
+		countDown *= 2;
 		while (countDown) {
 			if ((locateSegment(pageNumber, segment, lowTree) ||
 				locateSegment(pageNumber, segment, highTree)) &&
@@ -148,8 +148,7 @@ static void pullInSegment(long pageNumber, long segment,
 		updateTickCount(thResources);
 		countDown--;
 		pthread_mutex_lock(&globals->threadGlobalLock);
-	}
-	else {
+	} else {
 		while (countDown) {
 			if (locateSegment(pageNumber, segment, lowTree) ||
 				locateSegment(pageNumber, segment, highTree)) {
@@ -219,6 +218,11 @@ accessMemory(long pageNumber, long segment,
 	struct ThreadResources *thResources, int overmark)
 {
 	struct ThreadGlobal *globals = thResources->globals;
+	if (overmark) {
+		pullInSegment(pageNumber, segment, thResources, overmark);
+		countdownTicks(TICKFIND, thResources);
+		return;
+	}
 	if (locatePageTreePR(pageNumber, globals->lowTree)) {
 		//In low tree
 		if (!locateSegment(pageNumber, segment, globals->lowTree))
@@ -231,11 +235,6 @@ accessMemory(long pageNumber, long segment,
 		} else {
 			//In low tree, segment present
 			promoteToHighTree(pageNumber, thResources);
-			if (overmark) {
-				overmark = 0;
-				accessMemory(pageNumber, segment + 1, 
-					thResources, overmark);
-			} 
 			insertRecord(thResources);
 			pthread_mutex_unlock(&globals->threadGlobalLock);
 			countdownTicks(TICKFIND, thResources);
