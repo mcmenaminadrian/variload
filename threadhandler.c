@@ -196,12 +196,12 @@ static void pullInSegment(long pageNumber, long segment,
 	pthread_mutex_unlock(&globals->threadGlobalLock);
 }
 
-static void
-updateHighTree(long pageNumber, struct ThreadResources *thResources)
-{
-	struct ThreadGlobal *globals = thResources->globals;
-	updateTree(pageNumber, globals->highTree);
-}
+//static void
+//updateHighTree(long pageNumber, struct ThreadResources *thResources)
+//{
+//	struct ThreadGlobal *globals = thResources->globals;
+//	updateTree(pageNumber, globals->highTree);
+//}
 
 static void 
 notInGlobalTree(long pageNumber, struct ThreadResources *thResources,
@@ -218,11 +218,11 @@ accessMemory(long pageNumber, long segment,
 	struct ThreadResources *thResources, int overmark)
 {
 	struct ThreadGlobal *globals = thResources->globals;
-	if (overmark) {
+//	if (overmark) {
 		pullInSegment(pageNumber, segment, thResources, overmark);
 		countdownTicks(TICKFIND, thResources);
 		return;
-	}
+/*	}
 	if (locatePageTreePR(pageNumber, globals->lowTree)) {
 		//In low tree
 		if (!locateSegment(pageNumber, segment, globals->lowTree))
@@ -261,12 +261,12 @@ accessMemory(long pageNumber, long segment,
 				pthread_mutex_unlock(&globals->threadGlobalLock);
 				countdownTicks(TICKFIND, thResources);
 			}
-		} else {
+		} else { 
 			//not in either tree
 			notInGlobalTree(pageNumber, thResources, segment,
 				overmark);
 		}
-	}
+	}*/
 }
 	
 	
