@@ -143,11 +143,11 @@ static void pullInSegment(long pageNumber, long segment,
 					&globals->threadGlobalLock);
 				return;
 			}
+			pthread_mutex_unlock(&globals->threadGlobalLock);
+			updateTickCount(thResources);
+			countDown--;
+			pthread_mutex_lock(&globals->threadGlobalLock);
 		}
-		pthread_mutex_unlock(&globals->threadGlobalLock);
-		updateTickCount(thResources);
-		countDown--;
-		pthread_mutex_lock(&globals->threadGlobalLock);
 	} else {
 		while (countDown) {
 			if (locateSegment(pageNumber, segment, lowTree) ||
