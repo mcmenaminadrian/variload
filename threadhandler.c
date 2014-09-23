@@ -171,7 +171,8 @@ static void pullInSegment(long pageNumber, long segment,
 		while (countDown) {
 			if (locateSegment(pageNumber, segment, lowTree) ||
 				locateSegment(pageNumber, segment, highTree)) {
-				foundSegment(pageNumber, segment, thResources);
+				foundSegment(pageNumber, segment, thResources,
+					globals);
 				return;
 			}
 			countDown = tickDown(globals, thResources, countDown);
