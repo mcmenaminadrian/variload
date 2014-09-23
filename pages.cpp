@@ -115,8 +115,8 @@ pair<bool, long> DoubleTree::removePage(const long pageNumber)
 	map<long, PartialPage>::iterator itPage = pageTree.find(pageNumber);
 	if (itPage == pageTree.end())
 	{
-		cout << "ERROR: page does not exist in tree: " << pageNumber;
-		cout << "\n";
+		cerr << "ERROR: page does not exist in tree: " << pageNumber;
+		cerr << "\n";
 		return pair<bool, long>(false, -1);
 	}
 	pageTree.erase(itPage);

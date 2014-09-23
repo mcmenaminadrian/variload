@@ -123,6 +123,29 @@ promoteToHighTree(long pageNumber, struct ThreadResources *thResources)
 		globals->highTree);
 }
 
+static int
+tickDown(struct ThreadGlobal *globals, struct ThreadResources *thResources,
+	int count)
+{
+	pthread_mutex_unlock(&globals->threadGlobalLock);
+	updateTickCount(thResources);
+	pthread_mutex_lock(&globals->threadGlobalLock);
+	return --count;
+}
+
+static void foundSegment(long pageNumber, long segment,
+	struct ThreadResources *thResources, struct ThreadGlobal *globals)
+{
+	if (locateSegment(pageNumber, segment, globals->lowTree)) {
+		promoteToHighTree(pageNumber, thResources);
+	} else {
+		updateTree(pageNumber, globals->highTree);
+	}
+	insertRecord(thResources);
+	pthread_mutex_unlock(&globals->threadGlobalLock);
+}
+		
+
 static void pullInSegment(long pageNumber, long segment,
 	struct ThreadResources *thResources, int overmark)
 {
@@ -138,28 +161,20 @@ static void pullInSegment(long pageNumber, long segment,
 				(locateSegment(pageNumber, segment + 1,
 					lowTree)|| locateSegment(pageNumber,
 					segment + 1, highTree))) {
-				insertRecord(thResources);
-				pthread_mutex_unlock(
-					&globals->threadGlobalLock);
+				foundSegment(pageNumber, segment, thResources,
+					globals);
 				return;
 			}
-			pthread_mutex_unlock(&globals->threadGlobalLock);
-			updateTickCount(thResources);
-			countDown--;
-			pthread_mutex_lock(&globals->threadGlobalLock);
+			countDown = tickDown(globals, thResources, countDown);
 		}
 	} else {
 		while (countDown) {
 			if (locateSegment(pageNumber, segment, lowTree) ||
 				locateSegment(pageNumber, segment, highTree)) {
-				insertRecord(thResources);
-				pthread_mutex_unlock(&globals->threadGlobalLock);
+				foundSegment(pageNumber, segment, thResources);
 				return;
 			}
-			pthread_mutex_unlock(&globals->threadGlobalLock);
-			updateTickCount(thResources);
-			countDown--;
-			pthread_mutex_lock(&globals->threadGlobalLock);
+			countDown = tickDown(globals, thResources, countDown);
 		}
 	}
 	thResources->local->faultCount++;
