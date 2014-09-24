@@ -95,7 +95,7 @@ void DoubleTree::insertNewPage(const long pageNumber)
 void DoubleTree::insertOldPage(const long pageNumber, const long timeIn)
 {
 	pair<long, PartialPage> goIn(pageNumber, PartialPage(pageNumber, 
-		PAGESIZE >> 4, timeIn));
+		PAGESIZE_ >> 4, timeIn));
 	pageTree.insert(goIn);
 }
 
