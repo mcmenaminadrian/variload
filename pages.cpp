@@ -71,7 +71,7 @@ class DoubleTree
 	public:
 	long getUnixTimeChrono() const;
 	void insertNewPage(const long pageNumber);
-	void insertOldPage(const long pageNumber);
+	void insertOldPage(const long pageNumber, const long timeIn);
 	const bool offsetPresent(PartialPage& pPage, const long offset) const;
 	pair<bool, PartialPage&> locatePage(const long pageNumber);
 	pair<bool, long> removePage(const long pageNumber);
@@ -92,9 +92,11 @@ void DoubleTree::insertNewPage(const long pageNumber)
 	pageTree.insert(goIn);
 }
 
-void DoubleTree::insertOldPage(const long pageNumber)
+void DoubleTree::insertOldPage(const long pageNumber, const long timeIn)
 {
-	insertNewPage(pageNumber);
+	pair<long, PartialPage> goIn(pageNumber, PartialPage(pageNumber, 
+		PAGESIZE >> 4, timeIn));
+	pageTree.insert(goIn);
 }
 
 pair<bool, PartialPage&> DoubleTree::locatePage(const long pageNumber)
@@ -159,18 +161,18 @@ void insertNewIntoPageTree(long pageNumber, void *tree)
 	prTree->insertNewPage(pageNumber);
 }
 
-void insertOldIntoPageTree(long pageNumber, void* oldTree, void* newTree)
+void pushPageHigh(long pageNumber, void *lowTree, void *highTree)
 {
-	DoubleTree *destTree, *srcTree;
-	destTree = static_cast<DoubleTree *>(newTree);
-	srcTree = static_cast<DoubleTree *>(oldTree);
-	pair<bool, long> result = srcTree->removePage(pageNumber);
-	if (result.first == true) {
-		destTree->insertOldPage(result.second);
+	DoubleTree *lTree, *hTree;
+	lTree = static_cast<DoubleTree *>(lowTree);
+	hTree = static_cast<DoubleTree *>(highTree);
+	pair<bool, PartialPage&> finding = lTree->locatePage(pageNumber);
+	if (!finding.first) {
+		cerr << "Could not locate page " << pageNumber << "\n";
 		return;
-	} else {
-		fprintf(stderr, "Could not swap page to new tree \n");
 	}
+	hTree->insertNewPage(pageNumber);
+	lTree->removePage(pageNumber);
 }
 
 void swapOldestPageToLow(struct ThreadResources *thResources)
@@ -179,7 +181,7 @@ void swapOldestPageToLow(struct ThreadResources *thResources)
 	hTree = static_cast<DoubleTree *>(thResources->globals->highTree);
 	lTree = static_cast<DoubleTree *>(thResources->globals->lowTree);
 	PartialPage oldPage = hTree->oldestPage();
-	lTree->insertOldPage(oldPage.getPageNumber());
+	lTree->insertOldPage(oldPage.getPageNumber(), oldPage.getTime());
 	hTree->removePage(oldPage.getPageNumber());
 }
 

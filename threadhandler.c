@@ -119,7 +119,7 @@ promoteToHighTree(long pageNumber, struct ThreadResources *thResources)
 	if (countPageTree(globals->highTree) >= globals->maxHighSize) {
 		swapOldestPageToLow(thResources);
 	}
-	insertOldIntoPageTree(pageNumber, globals->lowTree,
+	pushPageHigh(pageNumber, globals->lowTree,
 		globals->highTree);
 }
 

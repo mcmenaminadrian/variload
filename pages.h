@@ -9,7 +9,7 @@ void markSegmentPresent(long pageNumber, long segment, void *tree);
 void swapOldestPageToLow(struct ThreadResources *thResources);
 void updateTree(long pageNumber, void *tree);
 void insertNewIntoPageTree(long pageNumber, void *tree);
-void insertOldIntoPageTree(long pageNumber, void *oldTree, void *newTree);
+void pushPageHigh(long pageNumber, void *lowTree, void *highTree);
 void* createPageTree(void);
 void removePageTree(void* tree);
 void* locatePageTreePR(long pageNumber, void* tree);
