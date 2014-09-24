@@ -81,9 +81,11 @@ class DoubleTree
 
 long DoubleTree::getUnixTimeChrono() const
 {
-    auto timeSinceEpoch = chrono::system_clock::now().time_since_epoch();
-    return chrono::duration_cast<chrono::microseconds>(timeSinceEpoch).count();
+	auto timeSinceEpoch = chrono::system_clock::now().time_since_epoch();
+	return chrono::duration_cast<chrono::microseconds>
+		(timeSinceEpoch).count();
 }
+
 
 void DoubleTree::insertNewPage(const long pageNumber)
 {
