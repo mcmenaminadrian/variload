@@ -252,7 +252,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 				pageNumber = address >> BITSHIFT;
 				offset = address ^ (pageNumber << BITSHIFT);
 				segment = offset >> 4;
-				local->anDestination = address;
+				local->anDestination = offset;
 				local->anPage = pageNumber;
 				continue;
 			}
@@ -278,7 +278,7 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 		accessMemory(pageNumber, segment, thResources, overmark);
 		if (overrun) {
 			local->anSize = resSize;
-			local->anDestination = (pageNumber + 1) << BITSHIFT;
+			local->anDestination = 0;
 			local->anPage = pageNumber + 1;
 			pthread_mutex_lock(&globals->threadGlobalLock);
 			accessMemory(pageNumber + 1, 0, thResources, 0);
@@ -287,14 +287,13 @@ threadXMLProcessor(void* data, const XML_Char *name, const XML_Char **attr)
 		if (strcmp(name, "modify") == 0) {
 			//do it again
 			local->anSize = size;
-			local->anDestination = address;
+			local->anDestination = offset;
 			local->anPage = pageNumber;
 			pthread_mutex_lock(&globals->threadGlobalLock);
 			accessMemory(pageNumber, segment, thResources, 0);
 			if (overrun) {
 				local->anSize = resSize;
-				local->anDestination =
-					(pageNumber + 1) << BITSHIFT;
+				local->anDestination = 0;
 				local->anPage = pageNumber + 1;
 				pthread_mutex_lock(&globals->threadGlobalLock);
 				accessMemory(pageNumber + 1, 0, thResources, 0);
