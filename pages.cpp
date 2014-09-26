@@ -30,6 +30,8 @@ class PartialPage
 	PartialPage& operator=(PartialPage& pp);
 	const bool getBitmap(const unsigned long sequence) const;
 	const bool setBitmap(const unsigned long sequence);
+	const boost::dynamic_bitset<> readBitmap() const;
+	void copyBitmap(const boost::dynamic_bitset<> bitmapIn);
 	const long getPageNumber() const;
 	void setTime(const long timeIn){time = timeIn;}
 	const long getTime() const {return time;}
@@ -58,6 +60,16 @@ const bool PartialPage::setBitmap(const unsigned long sequence)
 	return true;
 }
 
+const boost::dynamic_bitset<> PartialPage::readBitmap() const
+{
+	return bitmap;
+}
+
+void PartialPage::copyBitmap(const boost::dynamic_bitset<> bitmapIn)
+{
+	bitmap = bitmapIn;
+}
+
 const long PartialPage::getPageNumber() const
 {
 	return pageNumber;
@@ -71,7 +83,8 @@ class DoubleTree
 	public:
 	long getUnixTimeChrono() const;
 	void insertNewPage(const long pageNumber);
-	void insertOldPage(const long pageNumber, const long timeIn);
+	void insertOldPage(const long pageNumber, const long timeIn,
+		boost::dynamic_bitset<> bitIn);
 	const bool offsetPresent(PartialPage& pPage, const long offset) const;
 	pair<bool, PartialPage&> locatePage(const long pageNumber);
 	pair<bool, long> removePage(const long pageNumber);
@@ -86,7 +99,6 @@ long DoubleTree::getUnixTimeChrono() const
 		(timeSinceEpoch).count();
 }
 
-
 void DoubleTree::insertNewPage(const long pageNumber)
 {
 	pair<long, PartialPage> goIn(pageNumber, PartialPage(pageNumber,
@@ -94,10 +106,12 @@ void DoubleTree::insertNewPage(const long pageNumber)
 	pageTree.insert(goIn);
 }
 
-void DoubleTree::insertOldPage(const long pageNumber, const long timeIn)
+void DoubleTree::insertOldPage(const long pageNumber, const long timeIn,
+	boost::dynamic_bitset> bitIn)
 {
-	pair<long, PartialPage> goIn(pageNumber, PartialPage(pageNumber, 
-		PAGESIZE_ >> 4, timeIn));
+	PartialPage pageIn(pageNumber, PAGESIZE_ >> 4, timeIn);
+	pageIn.copyBitmap(bitIn);
+	pair<long, PartialPage> goIn(pageNumber, pageIn); 
 	pageTree.insert(goIn);
 }
 
@@ -173,7 +187,9 @@ void pushPageHigh(long pageNumber, void *lowTree, void *highTree)
 		cerr << "Could not locate page " << pageNumber << "\n";
 		return;
 	}
-	hTree->insertNewPage(pageNumber);
+	finding->second.setTime(getUnixTimeChrono());
+	pair<long, PartialPage> pageIn(pageNumber, finding->second);
+	hTree->insert(pageIn);
 	lTree->removePage(pageNumber);
 }
 
@@ -183,7 +199,8 @@ void swapOldestPageToLow(struct ThreadResources *thResources)
 	hTree = static_cast<DoubleTree *>(thResources->globals->highTree);
 	lTree = static_cast<DoubleTree *>(thResources->globals->lowTree);
 	PartialPage oldPage = hTree->oldestPage();
-	lTree->insertOldPage(oldPage.getPageNumber(), oldPage.getTime());
+	lTree->insertOldPage(oldPage.getPageNumber(), oldPage.getTime(),
+		oldPage.readbitmap());
 	hTree->removePage(oldPage.getPageNumber());
 }
 
