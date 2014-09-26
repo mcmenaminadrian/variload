@@ -90,6 +90,10 @@ class DoubleTree
 	pair<bool, long> removePage(const long pageNumber);
 	PartialPage& oldestPage();
 	const long treeSize() const { return pageTree.size();}
+	void insert(pair<long, PartialPage> inPair)
+	{
+		pageTree.insert(inPair);
+	}
 };
 
 long DoubleTree::getUnixTimeChrono() const
@@ -107,7 +111,7 @@ void DoubleTree::insertNewPage(const long pageNumber)
 }
 
 void DoubleTree::insertOldPage(const long pageNumber, const long timeIn,
-	boost::dynamic_bitset> bitIn)
+	boost::dynamic_bitset<> bitIn)
 {
 	PartialPage pageIn(pageNumber, PAGESIZE_ >> 4, timeIn);
 	pageIn.copyBitmap(bitIn);
@@ -187,7 +191,7 @@ void pushPageHigh(long pageNumber, void *lowTree, void *highTree)
 		cerr << "Could not locate page " << pageNumber << "\n";
 		return;
 	}
-	finding->second.setTime(getUnixTimeChrono());
+	finding->second.setTime(hTree->§getUnixTimeChrono());
 	pair<long, PartialPage> pageIn(pageNumber, finding->second);
 	hTree->insert(pageIn);
 	lTree->removePage(pageNumber);
