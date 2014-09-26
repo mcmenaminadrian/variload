@@ -191,8 +191,8 @@ void pushPageHigh(long pageNumber, void *lowTree, void *highTree)
 		cerr << "Could not locate page " << pageNumber << "\n";
 		return;
 	}
-	finding->second.setTime(hTree->§getUnixTimeChrono());
-	pair<long, PartialPage> pageIn(pageNumber, finding->second);
+	finding.second.setTime(hTree->getUnixTimeChrono());
+	pair<long, PartialPage> pageIn(pageNumber, finding.second);
 	hTree->insert(pageIn);
 	lTree->removePage(pageNumber);
 }
