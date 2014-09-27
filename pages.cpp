@@ -156,7 +156,7 @@ PartialPage& DoubleTree::oldestPage()
 			pageToKill = itOld->second;
 		}
 	}
-	cerr << "Tree has " << size() << " elements and we picked page " << pageToKill->getPageNumber() << endl;
+	cerr << "Tree has " << pageTree.size() << " elements and we picked page " << pageToKill->getPageNumber() << endl;
 	return pageToKill;
 }
 
