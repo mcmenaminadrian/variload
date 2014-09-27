@@ -109,7 +109,7 @@ void DoubleTree::insertNewPage(const long pageNumber)
 		PAGESIZE_ >> 4, getUnixTimeChrono())); 
 	pageTree.insert(goIn);
 }
-
+<< 
 void DoubleTree::insertOldPage(const long pageNumber, const long timeIn,
 	boost::dynamic_bitset<> bitIn)
 {
@@ -155,7 +155,8 @@ PartialPage& DoubleTree::oldestPage()
 			timeToKill = itOld->second.getTime();
 			pageToKill = itOld->second;
 		}
-	}	
+	}
+	cerr << "Tree has " << size() << " elements and we picked page " << pageToKill->getPageNumber() << endl;
 	return pageToKill;
 }
 
@@ -192,10 +193,8 @@ void pushPageHigh(long pageNumber, void *lowTree, void *highTree)
 		return;
 	}
 	finding.second.setTime(hTree->getUnixTimeChrono());
-	cerr << "Old: " << finding.second.readBitmap() << endl;
 	pair<long, PartialPage> pageIn(pageNumber, finding.second);
 	hTree->insert(pageIn);
-	cerr << "New: " << hTree->locatePage(pageNumber).second.readBitmap() << endl << endl;
 	lTree->removePage(pageNumber);
 }
 
