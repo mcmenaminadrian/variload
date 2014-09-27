@@ -205,6 +205,7 @@ void swapOldestPageToLow(struct ThreadResources *thResources)
 	PartialPage oldPage = hTree->oldestPage();
 	lTree->insert(pair<long, PartialPage>
 		(oldPage.getPageNumber(), oldPage));
+	cerr << oldPage.copyBitmap() << "/n";
 	hTree->removePage(oldPage.getPageNumber());
 }
 
