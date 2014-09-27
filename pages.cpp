@@ -150,7 +150,7 @@ PartialPage& DoubleTree::oldestPage()
 	PartialPage& pageToKill = pageTree.begin()->second;
 	long timeToKill = pageTree.begin()->second.getTime();
 	map<long, PartialPage>::iterator itOld;
-	cerr << "Page " << pageToKill.getPageNumber() << " with time " << pageToKill.getTime() << endl;
+	cerr << "Page " << pageToKill.getPageNumber() << " with time " << timeToKill << endl;
 	for (itOld = pageTree.begin(); itOld != pageTree.end(); itOld++) {
 		if (itOld->second.getTime() < timeToKill) {
 			timeToKill = itOld->second.getTime();
