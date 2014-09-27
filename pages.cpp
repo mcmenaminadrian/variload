@@ -109,7 +109,7 @@ void DoubleTree::insertNewPage(const long pageNumber)
 		PAGESIZE_ >> 4, getUnixTimeChrono())); 
 	pageTree.insert(goIn);
 }
-<< 
+
 void DoubleTree::insertOldPage(const long pageNumber, const long timeIn,
 	boost::dynamic_bitset<> bitIn)
 {
