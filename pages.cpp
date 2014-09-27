@@ -156,7 +156,7 @@ PartialPage& DoubleTree::oldestPage()
 			pageToKill = itOld->second;
 		}
 	}
-	cerr << "Tree has " << pageTree.size() << " elements and we picked page " << pageToKill.getPageNumber() << endl;
+	//cerr << "Tree has " << pageTree.size() << " elements and we picked page " << pageToKill.getPageNumber() << endl;
 	return pageToKill;
 }
 
@@ -192,10 +192,13 @@ void pushPageHigh(long pageNumber, void *lowTree, void *highTree)
 		cerr << "Could not locate page " << pageNumber << "\n";
 		return;
 	}
+	cerr << "Time was " << second.getTime();
 	finding.second.setTime(hTree->getUnixTimeChrono());
+	cerr << " and set to " << second.getTime();
 	pair<long, PartialPage> pageIn(pageNumber, finding.second);
 	hTree->insert(pageIn);
-	cerr << "Pushed up page " << pageNumber << endl;
+	cerr << " and in the tree it has time " << hTree->locatePage(pageNumber).second.getTime() << endl;
+	//cerr << "Pushed up page " << pageNumber << endl;
 	lTree->removePage(pageNumber);
 }
 
