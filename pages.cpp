@@ -192,8 +192,10 @@ void pushPageHigh(long pageNumber, void *lowTree, void *highTree)
 		return;
 	}
 	finding.second.setTime(hTree->getUnixTimeChrono());
+	cerr << "Old: " << finding.second.readBitmap() << endl;
 	pair<long, PartialPage> pageIn(pageNumber, finding.second);
 	hTree->insert(pageIn);
+	cerr << "New: " << hTree->locatePage(pageNumber).second.readBitmap() << endl << endl;
 	lTree->removePage(pageNumber);
 }
 
@@ -205,8 +207,6 @@ void swapOldestPageToLow(struct ThreadResources *thResources)
 	PartialPage oldPage = hTree->oldestPage();
 	lTree->insert(pair<long, PartialPage>
 		(oldPage.getPageNumber(), oldPage));
-	//cerr << "OldPage: " << oldPage.readBitmap() << "\n";
-	//cerr << "NewPage: " << lTree->locatePage(oldPage.getPageNumber()).second.readBitmap() << "\n\n";
 	hTree->removePage(oldPage.getPageNumber());
 }
 
