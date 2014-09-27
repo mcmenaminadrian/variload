@@ -155,7 +155,7 @@ PartialPage& DoubleTree::oldestPage()
 		if (itOld->second.getTime() < timeToKill) {
 			timeToKill = itOld->second.getTime();
 			pageToKill = itOld->second;
-			cerr << "Replaced with " << pageToKill.getPageNumber() << " with time " << pageToKill.getTime() << endl;
+			cerr << "Replaced with " << pageToKill.getPageNumber() << " with time " << timeToKill << endl;
 		}
 	}
 	cerr << "Tree has " << pageTree.size() << " elements and we picked page " << pageToKill.getPageNumber() << endl;
