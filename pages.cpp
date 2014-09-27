@@ -192,7 +192,7 @@ void pushPageHigh(long pageNumber, void *lowTree, void *highTree)
 		cerr << "Could not locate page " << pageNumber << "\n";
 		return;
 	}
-	cerr << "Time was " << second.getTime();
+	cerr << "Time was " << finding.second.getTime();
 	finding.second.setTime(hTree->getUnixTimeChrono());
 	cerr << " and set to " << second.getTime();
 	pair<long, PartialPage> pageIn(pageNumber, finding.second);
