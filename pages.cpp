@@ -150,13 +150,15 @@ PartialPage& DoubleTree::oldestPage()
 	PartialPage& pageToKill = pageTree.begin()->second;
 	long timeToKill = pageTree.begin()->second.getTime();
 	map<long, PartialPage>::iterator itOld;
+	cerr << "Page " << pageToKill.getPageNumber() << " with time " << pageToKill.getTime() << endl;
 	for (itOld = pageTree.begin(); itOld != pageTree.end(); itOld++) {
 		if (itOld->second.getTime() < timeToKill) {
 			timeToKill = itOld->second.getTime();
 			pageToKill = itOld->second;
+			cerr << "Replaced with " << pageToKill.getPageNumber() << " with time " << pageToKill.getTime() << endl;
 		}
 	}
-	//cerr << "Tree has " << pageTree.size() << " elements and we picked page " << pageToKill.getPageNumber() << endl;
+	cerr << "Tree has " << pageTree.size() << " elements and we picked page " << pageToKill.getPageNumber() << endl;
 	return pageToKill;
 }
 
@@ -197,8 +199,8 @@ void pushPageHigh(long pageNumber, void *lowTree, void *highTree)
 	cerr << " and set to " << finding.second.getTime();
 	pair<long, PartialPage> pageIn(pageNumber, finding.second);
 	hTree->insert(pageIn);
-	cerr << " and in the tree it has time " << hTree->locatePage(pageNumber).second.getTime() << " *** " << endl;
-	//cerr << "Pushed up page " << pageNumber << endl;
+	//cerr << " and in the tree it has time " << hTree->locatePage(pageNumber).second.getTime() << " *** " << endl;
+	cerr << "Pushed up page " << pageNumber << endl;
 	lTree->removePage(pageNumber);
 }
 
