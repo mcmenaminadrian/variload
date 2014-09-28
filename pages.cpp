@@ -92,7 +92,11 @@ class DoubleTree
 	const long treeSize() const { return pageTree.size();}
 	void insert(pair<long, PartialPage> inPair)
 	{
-		pageTree.insert(inPair);
+		pair<map<long, PartialPage>::iterator, bool> res =
+			pageTree.insert(inPair);
+		if (res.second == false) {
+			cerr << "********* FALSE **********" << endl;
+		}
 	}
 };
 
