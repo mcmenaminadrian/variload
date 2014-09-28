@@ -155,7 +155,7 @@ pair<bool, long> DoubleTree::removePage(const long pageNumber)
 
 PartialPage& DoubleTree::oldestPage()
 {
-	PartialPage pageToKill = pageTree.begin()->second;
+	PartialPage& pageToKill = pageTree.begin()->second;
 	long timeToKill = pageTree.begin()->second.getTime();
 	map<long, PartialPage>::iterator itOld;
 	cerr << "Page " << pageToKill.getPageNumber() << " with time " << timeToKill << endl;
