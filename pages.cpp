@@ -111,7 +111,11 @@ void DoubleTree::insertNewPage(const long pageNumber)
 {
 	pair<long, PartialPage> goIn(pageNumber, PartialPage(pageNumber,
 		PAGESIZE_ >> 4, getUnixTimeChrono())); 
-	pageTree.insert(goIn);
+	pair<map<long, PartialPage>::iterator, bool> inPage = 
+		pageTree.insert(goIn);
+	if (inPage.second == false) {
+		cerr << "******* FAILURE ********" << endl;
+	}
 }
 
 void DoubleTree::insertOldPage(const long pageNumber, const long timeIn,
