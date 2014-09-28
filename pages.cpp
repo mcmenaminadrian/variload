@@ -209,7 +209,7 @@ void pushPageHigh(long pageNumber, void *lowTree, void *highTree)
 	pair<long, PartialPage> pageIn(pageNumber, finding.second);
 	hTree->insert(pageIn);
 	//cerr << " and in the tree it has time " << hTree->locatePage(pageNumber).second.getTime() << " *** " << endl;
-	cerr << "Pushed up page " << pageNumber << endl;
+	//cerr << "Pushed up page " << pageNumber << endl;
 	lTree->removePage(pageNumber);
 }
 
