@@ -158,16 +158,16 @@ PartialPage* DoubleTree::oldestPage()
 	PartialPage* pageToKill = &(pageTree.begin()->second);
 	long timeToKill = pageTree.begin()->second.getTime();
 	map<long, PartialPage>::iterator itOld;
-	cerr << "Page " << pageToKill->getPageNumber() << " with time " << timeToKill << endl;
+	//cerr << "Page " << pageToKill->getPageNumber() << " with time " << timeToKill << endl;
 	for (itOld = pageTree.begin(); itOld != pageTree.end(); itOld++) {
-		cerr << itOld->first << " : " << itOld->second.getTime() << ",";
+	//	cerr << itOld->first << " : " << itOld->second.getTime() << ",";
 		if (itOld->second.getTime() < timeToKill) {
 			timeToKill = itOld->second.getTime();
 			pageToKill = &(itOld->second);
-			cerr << endl << "Replaced with " << pageToKill->getPageNumber() << " with time " << timeToKill << endl;
+	//		cerr << endl << "Replaced with " << pageToKill->getPageNumber() << " with time " << timeToKill << endl;
 		}
 	}
-	cerr << "Tree has " << pageTree.size() << " elements and we picked page " << pageToKill->getPageNumber() << endl;
+	//cerr << "Tree has " << pageTree.size() << " elements and we picked page " << pageToKill->getPageNumber() << endl;
 	return pageToKill;
 }
 
