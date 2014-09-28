@@ -19,7 +19,7 @@ class PartialPage
 	private:
 	boost::dynamic_bitset<> bitmap;
 	long time;
-	const long pageNumber;
+	long pageNumber;
 
 	public:
 	PartialPage(const long pNumber, const long bitLength,
